@@ -1,0 +1,101 @@
+import { Language, TranslatableString } from '../types';
+
+const translations: { [key: string]: TranslatableString } = {
+  restaurantName: { en: 'Blink Restaurant', fa: 'رستوران بلینک' },
+  backToCategories: { en: 'Back to Categories', fa: 'بازگشت به دسته‌بندی‌ها' },
+  viewImmersive: { en: 'Immersive', fa: 'سه بعدی' },
+  viewGrid: { en: 'Grid', fa: 'شبکه‌ای' },
+  prepTime: { en: 'min', fa: 'دقیقه' },
+  addedToCart: { en: 'Added!', fa: 'اضافه شد!' },
+  addToCart: { en: 'Add to Cart', fa: 'افزودن به سبد خرید' },
+  cart: { en: 'Your Cart', fa: 'سبد خرید شما' },
+  emptyCart: { en: 'Your cart is empty.', fa: 'سبد خرید شما خالی است.' },
+  tableNumber: { en: 'Table Number', fa: 'شماره میز' },
+  enterTableNumber: { en: 'Enter your table number...', fa: 'شماره میز خود را وارد کنید...' },
+  total: { en: 'Total', fa: 'مجموع' },
+  submitOrder: { en: 'Submit Order', fa: 'ثبت سفارش' },
+  orderSubmitted: { en: 'Your order has been submitted!', fa: 'سفارش شما با موفقیت ثبت شد!' },
+  pleaseSelectCategory: { en: 'Please Select a Category', fa: 'لطفا یک دسته بندی را انتخاب کنید' },
+  chefsPick: { en: "Chef's Pick", fa: 'پیشنهاد سرآشپز' },
+  allergens: { en: 'Allergens', fa: 'آلرژن‌ها' },
+  // Landing Page translations
+  features: { en: 'Features', fa: 'ویژگی‌ها' },
+  demo: { en: 'Demo', fa: 'دمو' },
+  login: { en: 'Login', fa: 'ورود' },
+  signUp: { en: 'Sign Up', fa: 'ثبت نام' },
+  heroTitle: { en: 'Experience the Future of Dining.', fa: 'آینده رستوران‌داری را تجربه کنید.' },
+  heroSubtitle: { en: 'Blink offers a stunning, interactive digital menu that captivates your customers and simplifies your operations.', fa: 'بلینک یک منوی دیجیتال تعاملی و خیره‌کننده ارائه می‌دهد که مشتریان شما را مجذوب و فرآیندهای شما را ساده می‌کند.' },
+  viewLiveDemo: { en: 'View Live Demo', fa: 'مشاهده دموی زنده' },
+  registerRestaurant: { en: 'Register Your Restaurant', fa: 'رستوران خود را ثبت کنید' },
+  whyChooseBlink: { en: 'Why Choose Blink?', fa: 'چرا بلینک را انتخاب کنید؟' },
+  whyChooseSubtitle: { en: 'We combine beautiful design with powerful features to create the best digital menu experience.', fa: 'ما طراحی زیبا را با ویژگی‌های قدرتمند ترکیب می‌کنیم تا بهترین تجربه منوی دیجیتال را خلق کنیم.' },
+  featureStunningTitle: { en: 'Stunning Visuals', fa: 'جلوه‌های بصری خیره‌کننده' },
+  featureStunningDesc: { en: 'High-resolution images and an immersive interface that make your dishes irresistible.', fa: 'تصاویر با کیفیت بالا و رابط کاربری جذاب که غذاهای شما را غیرقابل مقاومت می‌کند.' },
+  featureUpdatesTitle: { en: 'Instant Updates', fa: 'به‌روزرسانی آنی' },
+  featureUpdatesDesc: { en: 'Update your menu, prices, and availability in real-time, anytime, from any device.', fa: 'منو، قیمت‌ها و موجودی خود را در لحظه، در هر زمان و از هر دستگاهی به‌روز کنید.' },
+  featureMultiLangTitle: { en: 'Multi-Language Support', fa: 'پشتیبانی چندزبانه' },
+  featureMultiLangDesc: { en: 'Cater to a diverse audience with seamless language switching (e.g., English & Persian).', fa: 'با قابلیت تغییر زبان روان (مانند انگلیسی و فارسی) به مخاطبان متنوع خود خدمات دهید.' },
+  featureOrderingTitle: { en: 'Integrated Ordering', fa: 'سفارش‌گیری یکپارچه' },
+  featureOrderingDesc: { en: 'Customers can place orders directly from their table, reducing wait times and errors.', fa: 'مشتریان می‌توانند مستقیماً از سر میز خود سفارش دهند، که باعث کاهش زمان انتظار و خطاها می‌شود.' },
+  seeItInAction: { en: 'See It In Action', fa: 'عملکرد آن را ببینید' },
+  seeItInActionDesc: { en: 'Our interactive demo showcases the fluid animations, beautiful layout, and ease of use of the Blink menu.', fa: 'دموی تعاملی ما انیمیشن‌های روان، چیدمان زیبا و سهولت استفاده از منوی بلینک را به نمایش می‌گذارد.' },
+  tryInteractiveDemo: { en: 'Try the interactive demo →', fa: 'دموی تعاملی را امتحان کنید ←' },
+  readyToGoDigital: { en: 'Ready to Go Digital?', fa: 'آماده دیجیتالی شدن هستید؟' },
+  readyToGoDigitalDesc: { en: 'Join the growing number of modern restaurants revolutionizing the dining experience. Sign up is quick and easy.', fa: 'به جمع رو به رشد رستوران‌های مدرنی بپیوندید که تجربه غذا خوردن را متحول می‌کنند. ثبت نام سریع و آسان است.' },
+  signUpWithGoogle: { en: 'Sign Up with Google', fa: 'ثبت نام با گوگل' },
+  or: { en: 'or', fa: 'یا' },
+  signUpWithEmail: { en: 'Sign Up with Email', fa: 'ثبت نام با ایمیل' },
+  // Dashboard translations
+  dashboard: { en: 'Dashboard', fa: 'داشبورد' },
+  welcome: { en: 'Welcome', fa: 'خوش آمدید' },
+  orders: { en: 'Orders', fa: 'سفارشات' },
+  menuManagement: { en: 'Menu Management', fa: 'مدیریت منو' },
+  categories: { en: 'Categories', fa: 'دسته بندی ها' },
+  items: { en: 'Items', fa: 'آیتم ها' },
+  settings: { en: 'Settings', fa: 'تنظیمات' },
+  logout: { en: 'Logout', fa: 'خروج' },
+  addNewCategory: { en: 'Add New Category', fa: 'افزودن دسته جدید' },
+  addNewItem: { en: 'Add New Item', fa: 'افزودن آیتم جدید' },
+  edit: { en: 'Edit', fa: 'ویرایش' },
+  delete: { en: 'Delete', fa: 'حذف' },
+  confirmDelete: { en: 'Are you sure you want to delete this?', fa: 'آیا از حذف این مورد اطمینان دارید؟' },
+  cancel: { en: 'Cancel', fa: 'لغو' },
+  saveChanges: { en: 'Save Changes', fa: 'ذخیره تغییرات' },
+  editCategory: { en: 'Edit Category', fa: 'ویرایش دسته' },
+  persianName: { en: 'Persian Name', fa: 'نام فارسی' },
+  englishName: { en: 'English Name', fa: 'نام انگلیسی' },
+  imageUrl: { en: 'Image URL', fa: 'آدرس تصویر' },
+  editItem: { en: 'Edit Item', fa: 'ویرایش آیتم' },
+  persianDescription: { en: 'Persian Description', fa: 'توضیحات فارسی' },
+  englishDescription: { en: 'English Description', fa: 'توضیحات انگلیسی' },
+  price: { en: 'Price', fa: 'قیمت' },
+  category: { en: 'Category', fa: 'دسته' },
+  preparationTime: { en: 'Preparation Time (min)', fa: 'زمان آماده‌سازی (دقیقه)' },
+  isFavorite: { en: "Is Chef's Pick?", fa: 'پیشنهاد سرآشپز است؟' },
+  persianAllergens: { en: 'Persian Allergens (comma-separated)', fa: 'آلرژن‌های فارسی (جدا شده با ویرگول)' },
+  englishAllergens: { en: 'English Allergens (comma-separated)', fa: 'آلرژن‌های انگلیسی (جدا شده با ویرگول)' },
+  aiStudio: { en: 'AI Studio', fa: 'استودیو هوش مصنوعی' },
+  generateWithAI: { en: 'Generate with AI', fa: 'تولید با هوش مصنوعی' },
+  orderId: { en: 'Order ID', fa: 'شناسه سفارش' },
+  table: { en: 'Table', fa: 'میز' },
+  status: { en: 'Status', fa: 'وضعیت' },
+  time: { en: 'Time', fa: 'زمان' },
+  totalPrice: { en: 'Total Price', fa: 'مبلغ کل' },
+  details: { en: 'Details', fa: 'جزئیات' },
+  noOrders: { en: 'No orders yet.', fa: 'هنوز سفارشی ثبت نشده است.' },
+};
+
+export const t = (key: keyof typeof translations, language: Language): string => {
+  return translations[key] ? translations[key][language] : key;
+};
+
+export const formatCurrency = (amount: number, language: Language): string => {
+    if (language === 'fa') {
+        return new Intl.NumberFormat('fa-IR').format(amount) + ' تومان';
+    }
+    // Dummy conversion for USD display
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount / 100000); 
+};

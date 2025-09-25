@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLINK Digital Menu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Vazirmatn:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* Apply Poppins by default, Vazirmatn for Persian */
+      body {
+        font-family: 'Poppins', sans-serif;
+      }
+      html[lang="fa"] body, html[dir="rtl"] body {
+        font-family: 'Vazirmatn', sans-serif;
+      }
+
+      /* Animation Keyframes */
+      @keyframes cart-shake {
+        10%, 90% { transform: rotate(-5deg); }
+        20%, 80% { transform: rotate(5deg); }
+        30%, 50%, 70% { transform: rotate(-8deg); }
+        40%, 60% { transform: rotate(8deg); }
+        100% { transform: rotate(0deg); }
+      }
+      .animate-cart-shake {
+        animation: cart-shake 0.5s ease-in-out;
+      }
+
+      @keyframes slide-in-item {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      html[dir="rtl"] @keyframes slide-in-item {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

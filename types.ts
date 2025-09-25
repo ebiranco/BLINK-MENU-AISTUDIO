@@ -1,0 +1,40 @@
+// FIX: Moved Language and TranslatableString definitions here and exported them to fix module resolution errors.
+export type Language = 'en' | 'fa';
+
+export interface TranslatableString {
+  en: string;
+  fa: string;
+}
+
+export interface MenuCategory {
+  id: string;
+  name: TranslatableString;
+  imageUrl: string;
+}
+
+export interface MenuItem {
+  id: number;
+  name: TranslatableString;
+  description: TranslatableString;
+  price: number;
+  prepTime: number; // in minutes
+  imageUrl: string;
+  allergens: TranslatableString[];
+  isFavorite: boolean;
+  categoryId: string; // Link to the category
+}
+
+export interface CartItem extends MenuItem {
+    quantity: number;
+}
+
+export type OrderStatus = 'New' | 'In Progress' | 'Completed';
+
+export interface Order {
+    id: string;
+    tableNumber: string;
+    items: CartItem[];
+    total: number;
+    status: OrderStatus;
+    timestamp: Date;
+}
