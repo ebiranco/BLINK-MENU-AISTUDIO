@@ -83,19 +83,52 @@ const translations: { [key: string]: TranslatableString } = {
   totalPrice: { en: 'Total Price', fa: 'مبلغ کل' },
   details: { en: 'Details', fa: 'جزئیات' },
   noOrders: { en: 'No orders yet.', fa: 'هنوز سفارشی ثبت نشده است.' },
+  // AI Image Studio
+  aiImageStudio: { en: 'AI Photography Studio', fa: 'استودیو عکاسی هوش مصنوعی' },
+  foodItemName: { en: 'Food Item Name (e.g., Pepperoni Pizza)', fa: 'نام آیتم غذایی (مثال: پیتزا پپرونی)' },
+  cameraAngle: { en: 'Camera Angle', fa: 'زاویه دوربین' },
+  eyeLevel: { en: 'Eye-level', fa: 'هم‌سطح چشم' },
+  topDown: { en: 'Top-down', fa: 'از بالا' },
+  fortyFiveDegree: { en: '45-Degree Angle', fa: 'زاویه ۴۵ درجه' },
+  lightingStyle: { en: 'Lighting Style', fa: 'سبک نورپردازی' },
+  brightAndClean: { en: 'Bright & Clean', fa: 'روشن و تمیز' },
+  moodyAndDramatic: { en: 'Moody & Dramatic', fa: 'تیره و دراماتیک' },
+  naturalSunlight: { en: 'Natural Sunlight', fa: 'نور طبیعی خورشید' },
+  background: { en: 'Background', fa: 'پس‌زمینه' },
+  lightWood: { en: 'Light Wood', fa: 'چوب روشن' },
+  darkMarble: { en: 'Dark Marble', fa: 'مرمر تیره' },
+  restaurantSetting: { en: 'Restaurant Setting', fa: 'محیط رستوران' },
+  useMyRestaurant: { en: 'Use My Restaurant as Background', fa: 'استفاده از محیط رستوران من' },
+  uploadPhotos: { en: 'Upload up to 4 photos', fa: 'حداکثر ۴ عکس آپلود کنید' },
+  presets: { en: 'Presets', fa: 'تنظیمات پیش‌فرض' },
+  loadPreset: { en: 'Load Preset', fa: 'بارگذاری پیش‌فرض' },
+  saveCurrentAsPreset: { en: 'Save Current as Preset', fa: 'ذخیره تنظیمات فعلی' },
+  presetName: { en: 'Preset Name', fa: 'نام پیش‌فرض' },
+  save: { en: 'Save', fa: 'ذخیره' },
+  preview: { en: 'Preview', fa: 'پیش‌نمایش' },
+  generateImage: { en: 'Generate Image', fa: 'تولید تصویر' },
+  generating: { en: 'Generating...', fa: 'در حال تولید...' },
+  useThisImage: { en: 'Use This Image', fa: 'استفاده از این تصویر' },
+  aiprompt: { en: 'Prompt', fa: 'دستور' },
+  aiGeneratedText: { en: 'Generated Text:', fa: 'متن تولید شده:' },
+  aiUseThisText: { en: 'Use This Text', fa: 'استفاده از این متن' },
 };
 
 export const t = (key: keyof typeof translations, language: Language): string => {
-  return translations[key] ? translations[key][language] : key;
+  // FIX: Explicitly cast the fallback key to a string. The compiler inferred that `key` could be a number,
+  // which would violate the function's string return type. This ensures compatibility.
+  return translations[key] ? translations[key][language] : String(key);
 };
 
 export const formatCurrency = (amount: number, language: Language): string => {
     if (language === 'fa') {
-        return new Intl.NumberFormat('fa-IR').format(amount) + ' تومان';
+        // FIX: Use template literal for consistency and to ensure a string return type.
+        return `${new Intl.NumberFormat('fa-IR').format(amount)} تومان`;
     }
     // Dummy conversion for USD display
-    return new Intl.NumberFormat('en-US', {
+    // FIX: Wrapped return value in a template literal to ensure the result is explicitly typed as a string, resolving the compiler error.
+    return `${new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(amount / 100000); 
+    }).format(amount / 100000)}`; 
 };

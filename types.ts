@@ -38,3 +38,13 @@ export interface Order {
     status: OrderStatus;
     timestamp: Date;
 }
+
+export interface StylePreset {
+  name: string;
+  settings: {
+    prompt: string;
+    angle: string;
+    lighting: string;
+    background: string;
+  };
+}

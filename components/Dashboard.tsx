@@ -4,7 +4,7 @@ import { Order, MenuItem, MenuCategory, OrderStatus, Language } from '../types';
 import { t, formatCurrency } from '../utils/translations';
 import MenuItemForm from './MenuItemForm';
 import CategoryForm from './CategoryForm';
-import AIStudio from './AIStudio';
+import AIStudio from './AIStudio'; // This is now the AI Image Studio
 
 interface DashboardProps {
     user: User;
@@ -92,7 +92,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <button onClick={() => setActiveTab('orders')} className={`p-3 rounded-lg text-left ${activeTab === 'orders' ? 'bg-blue-600' : 'hover:bg-gray-700'}`}>{t('orders', language)}</button>
             <button onClick={() => setActiveTab('menuItems')} className={`p-3 rounded-lg text-left ${activeTab === 'menuItems' ? 'bg-blue-600' : 'hover:bg-gray-700'}`}>{t('items', language)}</button>
             <button onClick={() => setActiveTab('menuCategories')} className={`p-3 rounded-lg text-left ${activeTab === 'menuCategories' ? 'bg-blue-600' : 'hover:bg-gray-700'}`}>{t('categories', language)}</button>
-            <button onClick={() => setIsAiStudioOpen(true)} className={`p-3 rounded-lg text-left hover:bg-gray-700`}>{t('aiStudio', language)}</button>
+            <button onClick={() => setIsAiStudioOpen(true)} className={`p-3 rounded-lg text-left hover:bg-gray-700`}>{t('aiImageStudio', language)}</button>
             <div className="flex-grow"></div>
             <button onClick={onLogout} className="p-3 rounded-lg hover:bg-gray-700 text-left">{t('logout', language)}</button>
         </nav>
@@ -190,7 +190,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
             {isItemFormOpen && <MenuItemForm item={editingItem} onClose={() => setIsItemFormOpen(false)} onSave={handleSaveItem} categories={menuCategories} language={language} />}
             {isCategoryFormOpen && <CategoryForm category={editingCategory} onClose={() => setIsCategoryFormOpen(false)} onSave={handleSaveCategory} language={language}/>}
-            {isAiStudioOpen && <AIStudio onClose={() => setIsAiStudioOpen(false)} language={language} onGenerate={() => {}} />}
+            {isAiStudioOpen && <AIStudio onClose={() => setIsAiStudioOpen(false)} language={language} onImageGenerated={() => {
+                // In dashboard, we don't need to do anything with the generated image
+                setIsAiStudioOpen(false);
+            }} initialPrompt="" />}
         </div>
     );
 };

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { MenuItem, MenuCategory, Language, TranslatableString } from '../types';
 import { t } from '../utils/translations';
-import AIStudio from './AIStudio';
+import AITextGenerator from './AITextGenerator';
+import AIStudio from './AIStudio'; // Image Generator
 
 const initialFormState: Omit<MenuItem, 'id'> = {
     name: { en: '', fa: '' },
@@ -14,6 +15,8 @@ const initialFormState: Omit<MenuItem, 'id'> = {
     categoryId: '',
 };
 
+type FormState = Omit<MenuItem, 'id'> & { allergensEN?: string; allergensFA?: string };
+
 interface MenuItemFormProps {
   item: MenuItem | null;
   onClose: () => void;
@@ -23,15 +26,15 @@ interface MenuItemFormProps {
 }
 
 const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, categories, language }) => {
-  const [formData, setFormData] = useState<Omit<MenuItem, 'id'>>(initialFormState);
-  const [isAiStudioOpen, setIsAiStudioOpen] = useState(false);
+  const [formData, setFormData] = useState<FormState>(initialFormState);
+  const [isTextStudioOpen, setIsTextStudioOpen] = useState(false);
+  const [isImageStudioOpen, setIsImageStudioOpen] = useState(false);
   const [aiTarget, setAiTarget] = useState<'name' | 'description' | null>(null);
 
   useEffect(() => {
     if (item) {
         const allergenStringEN = item.allergens.map(a => a.en).join(', ');
         const allergenStringFA = item.allergens.map(a => a.fa).join(', ');
-        // @ts-ignore
         setFormData({ ...item, allergensEN: allergenStringEN, allergensFA: allergenStringFA });
     } else {
       setFormData(initialFormState);
@@ -41,8 +44,9 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
-    if (type === 'checkbox' && e.target instanceof HTMLInputElement) {
-        setFormData(prev => ({ ...prev, [name]: e.target.checked }));
+    // FIX: Explicitly cast e.target to HTMLInputElement to access 'checked' property when type is 'checkbox', resolving the type error.
+    if (type === 'checkbox') {
+        setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
     } else {
         setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -64,18 +68,23 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const allergensEN = (formData as any).allergensEN?.split(',').map((s: string) => s.trim()).filter(Boolean) || [];
-    const allergensFA = (formData as any).allergensFA?.split(',').map((s: string) => s.trim()).filter(Boolean) || [];
+    const allergensEN = formData.allergensEN?.split(',').map((s: string) => s.trim()).filter(Boolean) || [];
+    const allergensFA = formData.allergensFA?.split(',').map((s: string) => s.trim()).filter(Boolean) || [];
 
     const allergens: TranslatableString[] = allergensEN.map((en: string, index: number) => ({
         en: en,
         fa: allergensFA[index] || en // fallback to english if persian not provided
     }));
 
-    onSave({ ...formData, allergens, id: item?.id || 0 });
+    const finalData = { ...formData, allergens };
+    delete (finalData as Partial<FormState>).allergensEN;
+    delete (finalData as Partial<FormState>).allergensFA;
+
+
+    onSave({ ...finalData, id: item?.id || 0 });
   };
   
-  const handleAiGenerated = (text: string) => {
+  const handleAiTextGenerated = (text: string) => {
     if (aiTarget) {
       if(aiTarget === 'name'){
         setFormData(prev => ({...prev, name: { ...prev.name, fa: text }}));
@@ -83,9 +92,14 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
          setFormData(prev => ({...prev, description: { ...prev.description, fa: text }}));
       }
     }
-    setIsAiStudioOpen(false);
+    setIsTextStudioOpen(false);
     setAiTarget(null);
   }
+  
+  const handleAiImageGenerated = (imageUrl: string) => {
+    setFormData(prev => ({ ...prev, imageUrl }));
+    setIsImageStudioOpen(false);
+  };
 
   return (
     <>
@@ -102,7 +116,7 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
                 <label className="block text-sm font-medium text-gray-700">{t('persianName', language)}</label>
                 <div className="flex items-center gap-2">
                     <input type="text" value={formData.name.fa} onChange={(e) => handleTranslatableChange(e, 'name', 'fa')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required />
-                    <button type="button" onClick={() => { setAiTarget('name'); setIsAiStudioOpen(true); }} className="p-2 bg-purple-100 text-purple-600 rounded-md">AI</button>
+                    <button type="button" onClick={() => { setAiTarget('name'); setIsTextStudioOpen(true); }} className="p-2 bg-purple-100 text-purple-600 rounded-md">AI</button>
                 </div>
               </div>
               <div>
@@ -117,7 +131,7 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
                  <label className="block text-sm font-medium text-gray-700">{t('persianDescription', language)}</label>
                  <div className="flex items-center gap-2">
                     <textarea value={formData.description.fa} onChange={(e) => handleTranslatableChange(e, 'description', 'fa')} rows={3} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required />
-                    <button type="button" onClick={() => { setAiTarget('description'); setIsAiStudioOpen(true); }} className="p-2 bg-purple-100 text-purple-600 rounded-md">AI</button>
+                    <button type="button" onClick={() => { setAiTarget('description'); setIsTextStudioOpen(true); }} className="p-2 bg-purple-100 text-purple-600 rounded-md">AI</button>
                  </div>
                </div>
                <div>
@@ -145,27 +159,30 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
               </div>
             </div>
             
-            {/* Image URL & Favorite */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">{t('imageUrl', language)}</label>
+             {/* Image URL & Favorite */}
+            <div>
+                <label className="block text-sm font-medium text-gray-700">{t('imageUrl', language)}</label>
+                <div className="flex items-center gap-2">
                     <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required />
+                    <button type="button" onClick={() => setIsImageStudioOpen(true)} className="p-2 bg-purple-100 text-purple-600 rounded-md flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>
+                    </button>
                 </div>
-                 <div className="flex items-center pt-6">
-                    <input type="checkbox" id="isFavorite" name="isFavorite" checked={formData.isFavorite} onChange={handleChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
-                    <label htmlFor="isFavorite" className="ml-2 block text-sm text-gray-900">{t('isFavorite', language)}</label>
-                </div>
+            </div>
+            <div className="flex items-center">
+                <input type="checkbox" id="isFavorite" name="isFavorite" checked={formData.isFavorite} onChange={handleChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+                <label htmlFor="isFavorite" className="mx-2 block text-sm text-gray-900">{t('isFavorite', language)}</label>
             </div>
             
             {/* Allergens */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('persianAllergens', language)}</label>
-                <input type="text" value={(formData as any).allergensFA || ''} onChange={(e) => handleAllergensChange(e, 'fa')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+                <input type="text" value={formData.allergensFA || ''} onChange={(e) => handleAllergensChange(e, 'fa')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">{t('englishAllergens', language)}</label>
-                <input type="text" value={(formData as any).allergensEN || ''} onChange={(e) => handleAllergensChange(e, 'en')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+                <input type="text" value={formData.allergensEN || ''} onChange={(e) => handleAllergensChange(e, 'en')} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
               </div>
             </div>
 
@@ -181,11 +198,17 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
         </form>
       </div>
     </div>
-    {isAiStudioOpen && <AIStudio 
-      onClose={() => setIsAiStudioOpen(false)} 
+    {isTextStudioOpen && <AITextGenerator 
+      onClose={() => setIsTextStudioOpen(false)} 
       language={language}
-      onGenerate={handleAiGenerated}
+      onGenerate={handleAiTextGenerated}
       context={aiTarget === 'name' ? `Generate a creative Persian name for a food item. English name is: ${formData.name.en}` : `Generate an appetizing Persian description for a food item. The item is ${formData.name.en}. The English description is: ${formData.description.en}`}
+    />}
+    {isImageStudioOpen && <AIStudio
+        onClose={() => setIsImageStudioOpen(false)}
+        language={language}
+        onImageGenerated={handleAiImageGenerated}
+        initialPrompt={formData.name[language] || formData.name.en}
     />}
     </>
   );
