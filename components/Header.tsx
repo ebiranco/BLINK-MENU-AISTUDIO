@@ -15,10 +15,11 @@ interface HeaderProps {
   setViewMode: (mode: ViewMode) => void;
   isCartAnimating: boolean;
   onNavigateHome: () => void;
+  onReserveClick: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
-  language, setLanguage, cartItemCount, onCartClick, showBackButton, onBack, viewMode, setViewMode, isCartAnimating, onNavigateHome
+  language, setLanguage, cartItemCount, onCartClick, showBackButton, onBack, viewMode, setViewMode, isCartAnimating, onNavigateHome, onReserveClick
 }) => {
   const isRtl = language === 'fa';
 
@@ -54,6 +55,12 @@ const Header: React.FC<HeaderProps> = ({
               {t('viewGrid', language)}
             </button>
           </div>
+        )}
+        
+        {!showBackButton && (
+           <button onClick={onReserveClick} className="hidden sm:block bg-white/10 text-white font-semibold py-2 px-4 rounded-full text-sm hover:bg-white/20 transition-colors">
+              {t('reserveTable', language)}
+            </button>
         )}
 
         <div className="bg-black/20 rounded-full p-1 flex items-center text-sm">

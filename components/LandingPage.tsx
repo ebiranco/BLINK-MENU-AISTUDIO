@@ -46,7 +46,8 @@ const LandingFooter = () => (
   </footer>
 );
 
-const FeatureCard = ({ icon, title, description }: { icon: JSX.Element, title: string, description: string }) => (
+// FIX: Changed the type for the 'icon' prop from `JSX.Element` to `React.ReactElement` to resolve "Cannot find namespace 'JSX'" error.
+const FeatureCard = ({ icon, title, description }: { icon: React.ReactElement, title: string, description: string }) => (
     <div className="bg-white/5 backdrop-blur-sm p-8 rounded-xl border border-white/10 text-center transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
         <div className="flex justify-center items-center h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 mx-auto mb-6">
             {icon}

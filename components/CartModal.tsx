@@ -114,7 +114,7 @@ const CartModal: React.FC<CartModalProps> = ({
               <span className="text-xl font-bold">{formatCurrency(total, language)}</span>
             </div>
             <button onClick={onSubmitOrder} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105">
-              {t('submitOrder', language)}
+              {t('proceedToPayment', language)}
             </button>
           </div>
         )}

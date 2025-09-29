@@ -37,14 +37,36 @@ export interface Order {
     total: number;
     status: OrderStatus;
     timestamp: Date;
+    isPaid: boolean; // Added to track payment status
 }
 
 export interface StylePreset {
-  name: string;
-  settings: {
-    prompt: string;
-    angle: string;
-    lighting: string;
-    background: string;
-  };
+  key: string;
+  name: TranslatableString;
+  previewImage: string;
+  prompt: string;
+  angle: string;
+  lighting: string;
+  background: string;
+}
+
+export interface GatewaySettings {
+    apiKey: string;
+    secretKey: string;
+}
+
+export interface Transaction {
+    orderId: string;
+    amount: number;
+    date: Date;
+    status: 'Paid';
+}
+
+export interface Reservation {
+    id: string;
+    name: string;
+    phone: string;
+    guests: number;
+    date: string;
+    time: string;
 }
