@@ -5,8 +5,8 @@ import { t } from '../utils/translations';
 interface AuthModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onLogin: (phone: string) => { success: boolean, message?: string };
-    onRegister: (name: string, phone: string) => { success: boolean, message?: string };
+    onLogin: (phone: string) => Promise<{ success: boolean, message?: string }>;
+    onRegister: (name: string, phone: string) => Promise<{ success: boolean, message?: string }>;
     language: Language;
 }
 
@@ -16,18 +16,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, onRegis
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         let result;
         if (activeTab === 'login') {
-            result = onLogin(phone);
+            result = await onLogin(phone);
         } else {
             if (!name) {
                 setError("Name is required.");
                 return;
             }
-            result = onRegister(name, phone);
+            result = await onRegister(name, phone);
         }
 
         if (result.success) {

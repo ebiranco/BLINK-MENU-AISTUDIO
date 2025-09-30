@@ -7,32 +7,40 @@ interface OrderPaymentModalProps {
     onClose: () => void;
     cartItems: CartItem[];
     tableNumber: string;
-    onConfirmPayment: () => void;
-    onSuccess: () => void;
+    onConfirmPayment: () => void; // Renamed from onSuccess for clarity
     language: Language;
 }
 
-const OrderPaymentModal: React.FC<OrderPaymentModalProps> = ({ isOpen, onClose, cartItems, tableNumber, onConfirmPayment, onSuccess, language }) => {
+const OrderPaymentModal: React.FC<OrderPaymentModalProps> = ({ isOpen, onClose, cartItems, tableNumber, onConfirmPayment, language }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
     
     const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const isRtl = language === 'fa';
 
-    const handlePay = () => {
+    const handlePay = async () => {
         setIsProcessing(true);
         // Simulate payment API call
-        setTimeout(() => {
-            onConfirmPayment();
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        try {
+            // After fake payment is successful, submit the order to our backend
+            await onConfirmPayment(); 
             setIsProcessing(false);
             setPaymentSuccess(true);
 
             // Reset after showing success message
             setTimeout(() => {
-                onSuccess(); // This resets cart in parent
+                // The parent component handles closing and resetting state
                 setPaymentSuccess(false);
             }, 3000);
-        }, 1500);
+
+        } catch (error) {
+            // If order submission fails after payment
+            console.error("Failed to confirm order after payment", error);
+            alert("Payment was successful, but there was an error confirming your order. Please contact staff.");
+            setIsProcessing(false);
+        }
     };
 
     if (!isOpen) return null;

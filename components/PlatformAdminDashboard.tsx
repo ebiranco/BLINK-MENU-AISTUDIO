@@ -1,15 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { PlatformAdmin, Restaurant, Order, Transaction } from '../types';
 import { formatCurrency } from '../utils/translations';
 
+const API_BASE_URL = '/api';
+
 interface PlatformAdminDashboardProps {
     adminUser: PlatformAdmin;
-    restaurants: Restaurant[];
-    setRestaurants: React.Dispatch<React.SetStateAction<Restaurant[]>>;
-    admins: PlatformAdmin[];
-    setAdmins: React.Dispatch<React.SetStateAction<PlatformAdmin[]>>;
-    allOrders: Order[];
-    allTransactions: Transaction[];
     onLogout: () => void;
 }
 
@@ -25,22 +21,48 @@ const StatCard: React.FC<{ title: string, value: string | number, icon: React.Re
     </div>
 );
 
-const PlatformAdminDashboard: React.FC<PlatformAdminDashboardProps> = ({
-    adminUser,
-    restaurants,
-    setRestaurants,
-    admins,
-    setAdmins,
-    allOrders,
-    allTransactions,
-    onLogout,
-}) => {
+const PlatformAdminDashboard: React.FC<PlatformAdminDashboardProps> = ({ adminUser, onLogout }) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'restaurants' | 'admins'>('overview');
+    
+    // Data states fetched from backend
+    const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+    const [allOrders, setAllOrders] = useState<Order[]>([]);
+    const [allTransactions, setAllTransactions] = useState<Transaction[]>([]); // Assuming an endpoint exists
+    const [admins, setAdmins] = useState<PlatformAdmin[]>([]); // Assuming an endpoint exists
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            // Fetch all necessary data for the admin panel
+            const [resRestaurants, resOrders] = await Promise.all([
+                fetch(`${API_BASE_URL}/restaurants`),
+                fetch(`${API_BASE_URL}/orders`),
+                // Add fetches for admins and transactions if endpoints exist
+            ]);
+            if (!resRestaurants.ok || !resOrders.ok) throw new Error('Failed to fetch admin data');
+
+            setRestaurants(await resRestaurants.json());
+            setAllOrders(await resOrders.json());
+            // setAllTransactions(...)
+            setAdmins([{ id: 'admin-001', email: 'admin@blink.com', role: 'Super Admin' }]); // Mock admin data
+            
+        } catch (error) {
+            console.error("Error fetching admin data:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const totalRevenue = useMemo(() => allTransactions.reduce((sum, tx) => sum + tx.amount, 0), [allTransactions]);
     const activeRestaurants = useMemo(() => restaurants.filter(r => r.status === 'active').length, [restaurants]);
 
     const handleRestaurantStatusChange = (id: string, newStatus: 'active' | 'inactive') => {
+        // This should be an API call in a real app
         setRestaurants(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
     };
 
@@ -54,6 +76,8 @@ const PlatformAdminDashboard: React.FC<PlatformAdminDashboardProps> = ({
     );
 
     const renderContent = () => {
+        if (isLoading) return <div className="text-center p-8">Loading data...</div>;
+
         switch (activeTab) {
             case 'overview':
                 return (
@@ -87,7 +111,7 @@ const PlatformAdminDashboard: React.FC<PlatformAdminDashboardProps> = ({
                                         <tr key={r.id}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{r.name}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{r.owner}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{r.joinDate}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{new Date(r.joinDate).toLocaleDateString()}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${r.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                                     {r.status}

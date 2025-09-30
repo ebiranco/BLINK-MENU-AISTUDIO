@@ -1,10 +1,11 @@
 {
   "name": "blink-digital-menu",
-  "version": "1.0.0",
-  "description": "Production-ready setup for BLINK Digital Menu",
-  "main": "index.js",
+  "version": "1.1.0",
+  "description": "Full-stack setup for BLINK Digital Menu",
+  "private": true,
   "scripts": {
-    "prepare": "node generate-config.js"
+    "prepare": "node generate-config.js",
+    "dev": "npm --prefix backend run dev"
   },
   "author": "",
   "license": "ISC",

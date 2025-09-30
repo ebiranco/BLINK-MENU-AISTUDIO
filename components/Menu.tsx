@@ -16,12 +16,10 @@ import InvitationModal from './InvitationModal';
 import EsmFamilGameModal from './EsmFamilGameModal';
 import { t } from '../utils/translations';
 
+const API_BASE_URL = '/api';
+
 interface MenuProps {
-  restaurant: Restaurant;
-  menuItems: MenuItem[];
-  menuCategories: MenuCategory[];
-  customers: Customer[];
-  setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
+  restaurantId: string;
   gameInvites: GameInvite[];
   onSendInvite: (from: Customer, to: Customer, settings: { timer: number }) => void;
   onRespondToInvite: (invite: GameInvite, response: 'accepted' | 'declined' | 'cancelled') => void;
@@ -29,7 +27,17 @@ interface MenuProps {
 }
 
 const Menu: React.FC<MenuProps> = (props) => {
-    const { restaurant, menuItems, menuCategories, customers, setCustomers, gameInvites, onSendInvite, onRespondToInvite, onNavigate } = props;
+    const { restaurantId, gameInvites, onSendInvite, onRespondToInvite, onNavigate } = props;
+    
+    // Data states fetched from the backend
+    const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // UI and interaction states
     const [language, setLanguage] = useState<Language>('fa');
     const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
@@ -49,15 +57,45 @@ const Menu: React.FC<MenuProps> = (props) => {
     const [esmFamilOpponent, setEsmFamilOpponent] = useState<Customer | 'AI' | null>(null);
     const [esmFamilTimer, setEsmFamilTimer] = useState(30);
 
+    // --- Data Fetching from Backend ---
+    useEffect(() => {
+        const fetchAllData = async () => {
+            try {
+                setIsLoading(true);
+                const [restaurantRes, itemsRes, categoriesRes, customersRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/restaurants/${restaurantId}`),
+                    fetch(`${API_BASE_URL}/menu/items`), // Assuming these are filtered by restaurant on backend in real app
+                    fetch(`${API_BASE_URL}/menu/categories`),
+                    fetch(`${API_BASE_URL}/customers?restaurantId=${restaurantId}`)
+                ]);
+
+                if (!restaurantRes.ok || !itemsRes.ok || !categoriesRes.ok || !customersRes.ok) {
+                    throw new Error('Failed to fetch initial data');
+                }
+
+                setRestaurant(await restaurantRes.json());
+                setMenuItems(await itemsRes.json());
+                setMenuCategories(await categoriesRes.json());
+                setCustomers(await customersRes.json());
+                setError(null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An unknown error occurred');
+                console.error("Fetch error:", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAllData();
+    }, [restaurantId]);
+
+
     // --- Real-time Invite Handling ---
     const incomingInvite = useMemo(() => {
-        // For demo purposes, we allow a user to receive their own sent invite to test the flow easily.
-        // In a real app, you would filter `inv.from.id !== currentCustomer?.id`.
         return gameInvites.find(inv => inv.to.id === currentCustomer?.id && inv.status === 'pending');
     }, [gameInvites, currentCustomer]);
 
     const acceptedInvite = useMemo(() => {
-        // Find an invite I sent that was accepted, or an invite I accepted.
         return gameInvites.find(inv => inv.status === 'accepted' && (inv.from.id === currentCustomer?.id || inv.to.id === currentCustomer?.id));
     }, [gameInvites, currentCustomer]);
     
@@ -66,11 +104,9 @@ const Menu: React.FC<MenuProps> = (props) => {
             const opponent = acceptedInvite.from.id === currentCustomer?.id ? acceptedInvite.to : acceptedInvite.from;
             setEsmFamilOpponent(opponent);
             setEsmFamilTimer(acceptedInvite.settings.timer);
-            // Close other modals and open the game
             setIsOnlineUsersModalOpen(false);
             setIsGameSelectionModalOpen(false);
             setIsEsmFamilModalOpen(true);
-            // Clean up the invite from state after starting the game
             onRespondToInvite(acceptedInvite, 'accepted'); 
         }
     }, [acceptedInvite, currentCustomer, onRespondToInvite]);
@@ -116,47 +152,85 @@ const Menu: React.FC<MenuProps> = (props) => {
         setIsPaymentModalOpen(true);
     };
 
-    const handlePaymentSuccess = () => {
+    const handlePaymentSuccess = async () => {
+        const orderData = {
+            tableNumber,
+            items: cartItems,
+            total: cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+            restaurantId: restaurantId,
+            customerId: currentCustomer?.id || null,
+        };
+
+        const response = await fetch(`${API_BASE_URL}/orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to submit order');
+        }
         setIsPaymentModalOpen(false);
         setCartItems([]);
         setTableNumber('');
     };
 
-    const handleLogin = (phone: string) => {
-        const customer = customers.find(c => c.phone === phone);
-        if (customer) {
+    const handleLogin = async (phone: string) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/customers/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone }),
+            });
+            if (!response.ok) {
+                 const err = await response.json();
+                 return { success: false, message: err.msg || 'User not found.' };
+            }
+            const customer = await response.json();
             setCurrentCustomer(customer);
             return { success: true };
+        } catch (error) {
+            return { success: false, message: 'A network error occurred.' };
         }
-        return { success: false, message: 'User not found.' };
     };
 
-    const handleRegister = (name: string, phone: string) => {
-        if (customers.some(c => c.phone === phone)) {
-            return { success: false, message: 'Phone number already registered.' };
+    const handleRegister = async (name: string, phone: string) => {
+         try {
+            const response = await fetch(`${API_BASE_URL}/customers/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, phone, restaurantId }),
+            });
+            if (!response.ok) {
+                 const err = await response.json();
+                 return { success: false, message: err.msg || 'Registration failed.' };
+            }
+            const newCustomer = await response.json();
+            setCustomers(prev => [...prev, newCustomer]);
+            setCurrentCustomer(newCustomer);
+            return { success: true };
+        } catch (error) {
+            return { success: false, message: 'A network error occurred.' };
         }
-        const newCustomer: Customer = {
-            id: phone, name, phone, joinDate: new Date().toISOString().split('T')[0],
-            gameProgress: { level: 1, totalScore: 0, highScore: 0 },
-            orderHistory: [],
-            restaurantId: restaurant.id,
-        };
-        setCustomers(prev => [...prev, newCustomer]);
-        setCurrentCustomer(newCustomer);
-        return { success: true };
     };
     
-    const handleGameEnd = (finalScore: number) => {
+    const handleGameEnd = async (finalScore: number) => {
         if (currentCustomer) {
-            const updateUser = (user: Customer) => {
-                const newHighScore = Math.max(user.gameProgress.highScore, finalScore);
-                const newTotalScore = user.gameProgress.totalScore + finalScore;
-                const newLevel = LEVEL_THRESHOLDS.filter(t => newTotalScore >= t).length || 1;
-                return {...user, gameProgress: {highScore: newHighScore, totalScore: newTotalScore, level: newLevel }};
-            };
-            
-            setCurrentCustomer(prev => prev ? updateUser(prev) : null);
-            setCustomers(prevCustomers => prevCustomers.map(c => c.id === currentCustomer.id ? updateUser(c) : c));
+            try {
+                const response = await fetch(`${API_BASE_URL}/customers/${currentCustomer.id}/game`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ score: finalScore }),
+                });
+                if(!response.ok) throw new Error('Failed to update score');
+                const updatedCustomer = await response.json();
+                
+                // Update state
+                setCurrentCustomer(updatedCustomer);
+                setCustomers(prev => prev.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
+
+            } catch (error) {
+                console.error("Failed to update game score:", error);
+            }
         }
     };
 
@@ -172,9 +246,10 @@ const Menu: React.FC<MenuProps> = (props) => {
         setIsOnlineUsersModalOpen(true);
     };
 
-    const LEVEL_THRESHOLDS = [0, 200, 500, 1000, 2000, 3500, 5000, 7500, 10000, 15000, 20000];
+    if (isLoading) return <div className="min-h-screen bg-gray-900 flex justify-center items-center text-white text-xl">Loading Menu...</div>;
+    if (error || !restaurant) return <div className="min-h-screen bg-gray-900 flex justify-center items-center text-red-400 text-xl">Error: {error || 'Restaurant not found'}</div>;
 
-    const backgroundImageUrl = selectedCategory ? selectedCategory.imageUrl : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format=fit=crop';
+    const backgroundImageUrl = selectedCategory ? selectedCategory.imageUrl : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop';
     const itemsForCategory = menuItems.filter(item => item.categoryId === selectedCategory?.id);
     const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -228,7 +303,7 @@ const Menu: React.FC<MenuProps> = (props) => {
             
             <ItemDetailModal item={selectedItem} language={language} onClose={() => setSelectedItem(null)} onAddToCart={handleAddToCart} />
             <CartModal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cartItems={cartItems} language={language} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} tableNumber={tableNumber} setTableNumber={setTableNumber} onSubmitOrder={handleSubmitOrder} />
-            <OrderPaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} cartItems={cartItems} tableNumber={tableNumber} onConfirmPayment={() => { /* Logic to send order to kitchen */ }} onSuccess={handlePaymentSuccess} language={language} />
+            <OrderPaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} cartItems={cartItems} tableNumber={tableNumber} onConfirmPayment={handlePaymentSuccess} language={language} />
             <ReservationModal isOpen={isReservationModalOpen} onClose={() => setIsReservationModalOpen(false)} onSubmit={(reservation: Omit<Reservation, 'id' | 'restaurantId'>) => { alert('Reservation submitted!'); setIsReservationModalOpen(false); }} language={language} />
             <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onLogin={handleLogin} onRegister={handleRegister} language={language} />
             <LeaderboardModal isOpen={isLeaderboardModalOpen} onClose={() => setIsLeaderboardModalOpen(false)} language={language} customers={customers} currentCustomerId={currentCustomer?.id || null} />

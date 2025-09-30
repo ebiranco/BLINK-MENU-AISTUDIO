@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-// FIX: The User type should be imported from '../types', not '../App'.
+import React, { useState, useEffect, useCallback } from 'react';
 import { NavigateFunction } from '../App';
 import { User, Order, MenuItem, MenuCategory, OrderStatus, Language, Transaction, Restaurant, Customer } from '../types';
 import { t, formatCurrency } from '../utils/translations';
@@ -9,30 +8,25 @@ import AIStudio from './AIStudio';
 import FinancialsView from './FinancialsView';
 import CreditPurchaseModal from './CreditPurchaseModal';
 
+const API_BASE_URL = '/api';
+
 interface DashboardProps {
-    user: User;
-    currentRestaurant: Restaurant;
-    menuItems: MenuItem[];
-    menuCategories: MenuCategory[];
-    orders: Order[];
-    transactions: Transaction[];
-    customers: Customer[];
-    setMenuItems: React.Dispatch<React.SetStateAction<MenuItem[]>>;
-    setMenuCategories: React.Dispatch<React.SetStateAction<MenuCategory[]>>;
-    onUpdateOrderStatus: (orderId: string, newStatus: OrderStatus) => void;
-    onPurchaseCredits: (restaurantId: string, creditAmount: number) => void;
-    onToggleFeature: (restaurantId: string, feature: 'game' | 'customerClub', cost: number) => void;
+    restaurantId: string;
     onNavigate: NavigateFunction;
-    onLogout: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = (props) => {
-    const {
-        user, currentRestaurant, menuItems, menuCategories, orders, transactions, customers, 
-        setMenuItems, setMenuCategories, onUpdateOrderStatus, onPurchaseCredits, onToggleFeature,
-        onNavigate, onLogout
-    } = props;
+const Dashboard: React.FC<DashboardProps> = ({ restaurantId, onNavigate }) => {
+    // Data states fetched from backend
+    const [currentRestaurant, setCurrentRestaurant] = useState<Restaurant | null>(null);
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]); // Assuming these are fetched if needed
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     
+    // UI states
     const [language, setLanguage] = useState<Language>('fa');
     const [activeTab, setActiveTab] = useState<'orders' | 'menuItems' | 'menuCategories' | 'aiStudio' | 'financials' | 'customers' | 'upgrades'>('orders');
     const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -41,53 +35,126 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
     const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
     const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
 
-    useEffect(() => {
-        if (!user) {
-            onNavigate('');
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const [restaurantRes, itemsRes, categoriesRes, ordersRes, customersRes] = await Promise.all([
+                fetch(`${API_BASE_URL}/restaurants/${restaurantId}`),
+                fetch(`${API_BASE_URL}/menu/items`),
+                fetch(`${API_BASE_URL}/menu/categories`),
+                fetch(`${API_BASE_URL}/orders`),
+                fetch(`${API_BASE_URL}/customers?restaurantId=${restaurantId}`),
+            ]);
+            if (!restaurantRes.ok || !itemsRes.ok || !categoriesRes.ok || !ordersRes.ok || !customersRes.ok) {
+                throw new Error('Failed to fetch dashboard data');
+            }
+            
+            setCurrentRestaurant(await restaurantRes.json());
+            setMenuItems(await itemsRes.json());
+            setMenuCategories(await categoriesRes.json());
+            const ordersData = await ordersRes.json();
+            setOrders(ordersData.map((o: any) => ({ ...o, timestamp: new Date(o.timestamp) })));
+            setCustomers(await customersRes.json());
+
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        } finally {
+            setIsLoading(false);
         }
+    }, [restaurantId]);
+
+    useEffect(() => {
         document.documentElement.lang = language;
         document.documentElement.dir = language === 'fa' ? 'rtl' : 'ltr';
-    }, [user, onNavigate, language]);
+        fetchData();
+    }, [language, fetchData]);
     
-    const restaurantId = currentRestaurant.id;
+    // --- API Call Handlers ---
+    const onLogout = () => {
+        // In a real app, this would clear tokens/session
+        onNavigate('');
+    };
 
-    const handleSaveItem = (item: Omit<MenuItem, 'id' | 'restaurantId'>) => {
-        if (editingItem) {
-            setMenuItems(prev => prev.map(i => i.id === editingItem.id ? { ...editingItem, ...item } : i));
-        } else {
-            const newItem: MenuItem = { ...item, id: Date.now(), restaurantId };
-            setMenuItems(prev => [...prev, newItem]);
+    const onUpdateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus }),
+            });
+            if (!response.ok) throw new Error('Failed to update order status');
+            setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: newStatus} : o));
+        } catch (err) {
+            console.error(err);
+            alert('Error updating order status.');
         }
+    };
+    
+    const onPurchaseCredits = async (creditAmount: number) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/restaurants/${restaurantId}/credits`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: creditAmount }),
+            });
+            if (!response.ok) throw new Error('Failed to purchase credits');
+            const updatedRestaurant = await response.json();
+            setCurrentRestaurant(updatedRestaurant);
+        } catch (err) {
+            console.error(err);
+            alert('Error purchasing credits.');
+        }
+    };
+
+    const onToggleFeature = async (feature: 'game' | 'customerClub', cost: number) => {
+        if (!currentRestaurant || currentRestaurant.credits < cost) {
+            alert(t('insufficientCredits', language));
+            setIsCreditModalOpen(true);
+            return;
+        }
+         try {
+            const response = await fetch(`${API_BASE_URL}/restaurants/${restaurantId}/features`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ feature, cost }),
+            });
+            if (!response.ok) throw new Error('Failed to activate feature');
+            const updatedRestaurant = await response.json();
+            setCurrentRestaurant(updatedRestaurant);
+        } catch (err) {
+            console.error(err);
+            alert('Error activating feature.');
+        }
+    };
+    
+    // NOTE: Menu/Category modifications would be implemented similarly with API calls
+    const handleSaveItem = (item: Omit<MenuItem, 'id' | 'restaurantId'>) => {
+        console.log("TODO: API call to save item", item);
+        alert("DEMO: Item save functionality needs backend wiring.");
+        fetchData(); // Refetch data after change
         setIsItemFormOpen(false);
         setEditingItem(null);
     };
-
     const handleSaveCategory = (category: Omit<MenuCategory, 'id' | 'restaurantId'>) => {
-        if (editingCategory) {
-            setMenuCategories(prev => prev.map(c => c.id === editingCategory.id ? { ...editingCategory, ...category } : c));
-        } else {
-             const newCategory: MenuCategory = { 
-                 ...category, 
-                 id: `${restaurantId}-${category.name.en.toLowerCase().replace(/\s+/g, '-')}`,
-                 restaurantId
-             };
-             setMenuCategories(prev => [...prev, newCategory]);
-        }
+        console.log("TODO: API call to save category", category);
+        alert("DEMO: Category save functionality needs backend wiring.");
+        fetchData();
         setIsCategoryFormOpen(false);
         setEditingCategory(null);
     };
-
     const handleDeleteItem = (itemId: number) => {
         if (window.confirm(t('confirmDelete', language))) {
-            setMenuItems(prev => prev.filter(i => i.id !== itemId));
+            console.log("TODO: API call to delete item", itemId);
+            alert("DEMO: Item delete functionality needs backend wiring.");
+            fetchData();
         }
     };
-
     const handleDeleteCategory = (categoryId: string) => {
         if (window.confirm(t('confirmDelete', language))) {
-            // Also delete items within this category to prevent orphans
-            setMenuItems(prev => prev.filter(i => i.categoryId !== categoryId));
-            setMenuCategories(prev => prev.filter(c => c.id !== categoryId));
+            console.log("TODO: API call to delete category", categoryId);
+            alert("DEMO: Category delete functionality needs backend wiring.");
+            fetchData();
         }
     };
 
@@ -102,22 +169,20 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
     };
     
     const handleTabClick = (tabName: typeof activeTab) => {
+        if (!currentRestaurant) return;
         if (tabName === 'customers' && !currentRestaurant.isCustomerClubActive) {
             alert('Please activate the Customer Club feature from the Upgrades tab.');
-            setIsCreditModalOpen(true);
+            setActiveTab('upgrades');
             return;
         }
         setActiveTab(tabName);
     };
-    
-    const handleActivateFeature = (feature: 'game' | 'customerClub') => {
-        const cost = feature === 'game' ? 100 : 50;
-        if (currentRestaurant.credits < cost) {
-            alert(t('insufficientCredits', language));
-            setIsCreditModalOpen(true);
-        } else {
-            onToggleFeature(restaurantId, feature, cost);
-        }
+
+    if (isLoading || !currentRestaurant) {
+        return <div className="flex h-screen bg-gray-900 justify-center items-center text-white">Loading Dashboard...</div>;
+    }
+     if (error) {
+        return <div className="flex h-screen bg-gray-900 justify-center items-center text-red-400">Error: {error}</div>;
     }
 
 
@@ -170,7 +235,7 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
         <div className="bg-white/80 backdrop-blur-sm border border-white/20 p-4 rounded-lg shadow-md mb-3 transform transition-transform hover:scale-[1.02] hover:shadow-xl">
             <div className="flex justify-between items-start">
                 <div>
-                    <p className="font-bold text-gray-800">{order.id}</p>
+                    <p className="font-bold text-gray-800">Order #{order.id}</p>
                     <p className="text-sm text-gray-600">{t('table', language)}: <span className="font-semibold text-gray-800">{order.tableNumber}</span></p>
                 </div>
                 <p className="font-bold text-gray-900">{formatCurrency(order.total, language)}</p>
@@ -297,7 +362,6 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
                                 <th className="p-3 text-left text-sm font-semibold text-gray-800 uppercase">{t('name', language)}</th>
                                 <th className="p-3 text-left text-sm font-semibold text-gray-800 uppercase">{t('phoneNumber', language)}</th>
                                 <th className="p-3 text-left text-sm font-semibold text-gray-800 uppercase">{t('joinDate', language)}</th>
-                                <th className="p-3 text-left text-sm font-semibold text-gray-800 uppercase">{t('totalOrders', language)}</th>
                                 <th className="p-3 text-left text-sm font-semibold text-gray-800 uppercase">{t('totalScore', language)}</th>
                                 <th className="p-3 text-left text-sm font-semibold text-gray-800 uppercase">{t('highScore', language)}</th>
                             </tr>
@@ -307,8 +371,7 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
                                 <tr key={customer.id} className="border-b border-gray-400/20 hover:bg-black/5 transition-colors">
                                     <td className="p-2 font-semibold text-gray-900">{customer.name}</td>
                                     <td className="p-2 text-gray-700">{customer.phone}</td>
-                                    <td className="p-2 text-gray-700">{customer.joinDate}</td>
-                                    <td className="p-2 text-gray-700">{customer.orderHistory.length}</td>
+                                    <td className="p-2 text-gray-700">{new Date(customer.joinDate).toLocaleDateString()}</td>
                                     <td className="p-2 text-gray-700">{customer.gameProgress.totalScore}</td>
                                     <td className="p-2 text-gray-700">{customer.gameProgress.highScore}</td>
                                 </tr>
@@ -335,7 +398,7 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
                         <p className="font-semibold text-gray-800">{t('customerClubCost', language)}</p>
                     </div>
                     <button 
-                        onClick={() => handleActivateFeature('customerClub')}
+                        onClick={() => onToggleFeature('customerClub', 50)}
                         disabled={currentRestaurant.isCustomerClubActive}
                         className={`mt-4 w-full font-bold py-2 px-4 rounded-lg transition-colors ${
                             currentRestaurant.isCustomerClubActive 
@@ -354,7 +417,7 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
                         <p className="font-semibold text-gray-800">{t('gameCost', language)}</p>
                     </div>
                     <button 
-                        onClick={() => handleActivateFeature('game')}
+                        onClick={() => onToggleFeature('game', 100)}
                         disabled={currentRestaurant.isGameActive}
                         className={`mt-4 w-full font-bold py-2 px-4 rounded-lg transition-colors ${
                             currentRestaurant.isGameActive 
@@ -375,7 +438,7 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
             case 'customers': return <CustomersView />;
             case 'menuItems': return <MenuItemsView />;
             case 'menuCategories': return <MenuCategoriesView />;
-            case 'aiStudio': return <AIStudio language={language} />;
+            case 'aiStudio': return <AIStudio language={language} restaurantId={restaurantId} />;
             case 'financials': return <FinancialsView language={language} transactions={transactions} />;
             case 'upgrades': return <UpgradesView />;
             default: return <OrderKanbanView />;
@@ -408,12 +471,12 @@ const Dashboard: React.FC<DashboardProps> = (props) => {
                 </div>
             </main>
 
-            {isItemFormOpen && <MenuItemForm item={editingItem} restaurantId={restaurantId} onClose={() => setIsItemFormOpen(false)} onSave={handleSaveItem} categories={menuCategories} language={language} />}
-            {isCategoryFormOpen && <CategoryForm category={editingCategory} restaurantId={restaurantId} onClose={() => setIsCategoryFormOpen(false)} onSave={handleSaveCategory} language={language}/>}
+            {isItemFormOpen && <MenuItemForm item={editingItem} restaurantId={currentRestaurant.id} onClose={() => setIsItemFormOpen(false)} onSave={handleSaveItem} categories={menuCategories} language={language} />}
+            {isCategoryFormOpen && <CategoryForm category={editingCategory} restaurantId={currentRestaurant.id} onClose={() => setIsCategoryFormOpen(false)} onSave={handleSaveCategory} language={language}/>}
             {isCreditModalOpen && <CreditPurchaseModal 
                 isOpen={isCreditModalOpen}
                 onClose={() => setIsCreditModalOpen(false)}
-                onPurchase={(amount) => onPurchaseCredits(restaurantId, amount)}
+                onPurchase={onPurchaseCredits}
                 language={language}
             />}
         </div>
