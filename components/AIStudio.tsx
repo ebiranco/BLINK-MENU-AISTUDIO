@@ -240,10 +240,24 @@ const PhotographyStudio: React.FC<{ language: Language }> = ({ language }) => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-bold text-white mb-2">{t('stylePreset', language)}</label>
-                                <div className="grid grid-cols-5 gap-2">
-                                    {stylePresets.slice(0, 10).map(preset => (
-                                        <button key={preset.key} onClick={() => setActivePreset(preset)} className={`aspect-square rounded-md transition-all border-2 ${activePreset.key === preset.key ? 'border-purple-500 ring-2 ring-purple-500' : 'border-transparent hover:border-gray-400'}`} title={preset.name[language]}>
-                                            <img src={preset.previewImage} alt={preset.name[language]} className="w-full h-full object-cover rounded-sm"/>
+                                <div className="flex overflow-x-auto space-x-3 pb-2 -mx-6 px-6">
+                                    {stylePresets.map(preset => (
+                                        <button 
+                                            key={preset.key} 
+                                            onClick={() => setActivePreset(preset)} 
+                                            className={`flex-shrink-0 w-24 text-center group transition-all duration-200 ${activePreset.key === preset.key ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`} 
+                                            title={preset.name[language]}
+                                        >
+                                            <div className={`aspect-square rounded-lg transition-all border-2 overflow-hidden ${activePreset.key === preset.key ? 'border-purple-500 ring-2 ring-purple-500' : 'border-transparent group-hover:border-gray-400'}`}>
+                                                <img 
+                                                    src={preset.previewImage} 
+                                                    alt={preset.name[language]} 
+                                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                                                />
+                                            </div>
+                                            <span className={`block mt-1 text-xs text-white truncate transition-colors ${activePreset.key === preset.key ? 'font-semibold text-purple-300' : 'text-gray-300'}`}>
+                                                {preset.name[language]}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>

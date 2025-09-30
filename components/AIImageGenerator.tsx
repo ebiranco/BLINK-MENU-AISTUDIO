@@ -3,16 +3,16 @@ import { Language } from '../types';
 import { t } from '../utils/translations';
 import { GoogleGenAI } from '@google/genai';
 
-interface AITextGeneratorProps {
+interface AIImageGeneratorProps {
   onClose: () => void;
   language: Language;
-  onGenerate?: (text: string) => void;
+  onGenerate: (imageUrl: string) => void;
   context?: string;
 }
 
-const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, onGenerate, context }) => {
-  const [prompt, setPrompt] = useState(context || '');
-  const [generatedText, setGeneratedText] = useState('');
+const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({ onClose, language, onGenerate, context }) => {
+  const [prompt, setPrompt] = useState(context || 'A delicious looking pepperoni pizza on a wooden table');
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,7 +20,7 @@ const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, on
     if (!prompt) return;
     setIsLoading(true);
     setError('');
-    setGeneratedText('');
+    setGeneratedImage(null);
 
     try {
       if (!process.env.API_KEY) {
@@ -28,13 +28,19 @@ const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, on
       }
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
+      const response = await ai.models.generateImages({
+        model: 'imagen-4.0-generate-001',
+        prompt: prompt,
+        config: {
+            numberOfImages: 1,
+            outputMimeType: 'image/jpeg',
+            aspectRatio: '1:1',
+        }
       });
-
-      const text = response.text;
-      setGeneratedText(text);
+      
+      const base64ImageBytes = response.generatedImages[0].image.imageBytes;
+      const imageUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
+      setGeneratedImage(imageUrl);
 
     } catch (e) {
       console.error(e);
@@ -44,9 +50,9 @@ const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, on
     }
   };
 
-  const handleUseText = () => {
-    if (onGenerate && generatedText) {
-      onGenerate(generatedText);
+  const handleUseImage = () => {
+    if (onGenerate && generatedImage) {
+      onGenerate(generatedImage);
     }
     onClose();
   };
@@ -54,8 +60,13 @@ const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, on
   return (
     <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4" dir={language === 'fa' ? 'rtl' : 'ltr'}>
       <div className="bg-white rounded-lg shadow-2xl max-w-lg w-full">
-          <div className="p-6 border-b">
-            <h2 className="text-2xl font-bold text-gray-800">{t('generateWithAI', language)}</h2>
+          <div className="p-6 border-b flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-800">{t('generateWithAI', language)} Image</h2>
+             <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
           </div>
           <div className="p-6 space-y-4">
             <div>
@@ -66,7 +77,7 @@ const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, on
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                placeholder="e.g., Generate a delicious description for a pepperoni pizza"
+                placeholder="e.g., A delicious pepperoni pizza"
               />
             </div>
             <button
@@ -74,13 +85,13 @@ const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, on
               disabled={isLoading}
               className="w-full bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
             >
-              {isLoading ? t('generating', language) : t('generateWithAI', language)}
+              {isLoading ? t('generating', language) : t('generateImage', language)}
             </button>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            {generatedText && (
+            {generatedImage && (
               <div className="mt-4 p-4 bg-gray-100 rounded-md">
-                <h3 className="font-semibold mb-2">{t('aiGeneratedText', language)}</h3>
-                <p>{generatedText}</p>
+                <h3 className="font-semibold mb-2">{t('aiGeneratedImage', language)}</h3>
+                <img src={generatedImage} alt="Generated" className="w-full h-auto rounded-md"/>
               </div>
             )}
           </div>
@@ -90,11 +101,11 @@ const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, on
             </button>
             <button 
               type="button" 
-              onClick={handleUseText}
-              disabled={!generatedText}
+              onClick={handleUseImage}
+              disabled={!generatedImage}
               className="bg-green-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400"
             >
-              {t('aiUseThisText', language)}
+              Use This Image
             </button>
           </div>
       </div>
@@ -102,4 +113,4 @@ const AITextGenerator: React.FC<AITextGeneratorProps> = ({ onClose, language, on
   );
 };
 
-export default AITextGenerator;
+export default AIImageGenerator;

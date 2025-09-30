@@ -5,7 +5,8 @@ import { t } from '../utils/translations';
 interface ReservationModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (reservation: Omit<Reservation, 'id'>) => void;
+    // FIX: Changed onSubmit prop type to match the object being passed. `restaurantId` is not available here.
+    onSubmit: (reservation: Omit<Reservation, 'id' | 'restaurantId'>) => void;
     language: Language;
 }
 

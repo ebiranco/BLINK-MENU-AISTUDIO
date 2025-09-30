@@ -8,105 +8,188 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Vazirmatn:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Vazirmatn:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
-      /* Apply Poppins by default, Vazirmatn for Persian */
+      :root {
+        --color-bg: #1F2330;
+        --color-primary: #6C4EFF;
+        --color-secondary: #D6FF57;
+        --color-text: #FFFFFF;
+        --color-text-muted: #a0aec0; /* Tailwind's gray-400 */
+      }
+      
       body {
         font-family: 'Poppins', sans-serif;
-        background-color: #1a202c; /* Fallback */
-        background-image: linear-gradient(to bottom right, #1a202c, #2d3748);
+        background-color: var(--color-bg);
+        color: var(--color-text);
       }
       html[lang="fa"] body, html[dir="rtl"] body {
         font-family: 'Vazirmatn', sans-serif;
       }
 
-      /* Animation Keyframes */
-      @keyframes cart-shake {
-        10%, 90% { transform: rotate(-5deg); }
-        20%, 80% { transform: rotate(5deg); }
-        30%, 50%, 70% { transform: rotate(-8deg); }
-        40%, 60% { transform: rotate(8deg); }
-        100% { transform: rotate(0deg); }
+      /* Glassmorphism Card Style */
+      .card-glass {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease-in-out;
       }
-      .animate-cart-shake {
-        animation: cart-shake 0.5s ease-in-out;
-      }
-
-      @keyframes slide-in-item {
-        from {
-          opacity: 0;
-          transform: translateX(-20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-      html[dir="rtl"] @keyframes slide-in-item {
-        from {
-          opacity: 0;
-          transform: translateX(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
+      .card-glass:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+          border-color: rgba(255, 255, 255, 0.2);
       }
 
-      /* Animated Gradient Shimmer Button */
-      .btn-animated-gradient {
-        position: relative;
-        overflow: hidden;
+      /* Glassmorphism Button Style */
+      .btn-glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         transition: all 0.3s ease;
-        z-index: 1;
+      }
+      .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
       }
 
-      .btn-animated-gradient::before {
-        content: '';
+      /* Primary CTA Button (Lime) */
+      .btn-lime {
+        background-color: var(--color-secondary);
+        color: #1A202C; /* Dark text for contrast */
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+      .btn-lime:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 10px 20px rgba(214, 255, 87, 0.2);
+      }
+      
+      /* --- NEW/UPDATED FAQ Accordion Styles --- */
+      .faq-section-card {
+          background: rgba(20, 24, 40, 0.6);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .faq-item summary {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: pointer;
+          padding: 1.5rem;
+          transition: background-color 0.2s ease-out;
+          font-weight: 600;
+          color: var(--color-text);
+      }
+      .faq-item summary:hover {
+          background-color: rgba(108, 78, 255, 0.2); /* var(--color-primary) with alpha */
+      }
+      .faq-item summary::-webkit-details-marker {
+          display: none;
+      }
+      .faq-item .faq-content {
+          padding: 0 1.5rem 1.5rem 1.5rem;
+          color: #d1d5db; /* gray-300 for better readability */
+          line-height: 1.7;
+      }
+      .faq-icon {
+          transition: transform 0.3s ease;
+          color: var(--color-secondary); /* Lime color */
+      }
+      .faq-item[open] .faq-icon {
+          transform: rotate(45deg);
+      }
+      .faq-item[open] summary {
+          color: var(--color-secondary); /* Lime color for open question */
+      }
+      /* --- END FAQ Styles --- */
+
+      /* Landing Page Animation Helpers */
+      .hero-title .word-wrapper {
+        display: inline-block;
+        overflow: hidden;
+        vertical-align: bottom;
+        margin: 0 0.15em;
+      }
+      .hero-title .word {
+        display: inline-block;
+        transform: translateY(100%);
+        opacity: 0;
+      }
+
+      /* Coming Soon Badge */
+      .coming-soon-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: var(--color-primary);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        transform: rotate(15deg);
+        box-shadow: 0 2px 10px rgba(108, 78, 255, 0.5);
+      }
+
+      /* Pricing Card Styles */
+      .pricing-card {
+        transition: all 0.3s ease-in-out;
+        border: 2px solid transparent;
+      }
+      .pricing-card.recommended {
+        border-color: var(--color-primary);
+        transform: scale(1.05);
+      }
+      .pricing-card ul li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+      }
+      .pricing-card ul li svg {
+        color: var(--color-secondary);
+        flex-shrink: 0;
+      }
+      
+      /* Registration Form Styles */
+      .form-group {
+        position: relative;
+      }
+      .form-input {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: border-color 0.3s ease;
+      }
+      .form-input:focus {
+        border-color: var(--color-primary);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(108, 78, 255, 0.5);
+      }
+      .color-picker-wrapper {
+        position: relative;
+        width: 100%;
+        height: 42px; /* Match input height */
+        cursor: pointer;
+        border-radius: 0.375rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .color-picker-wrapper input[type="color"] {
         position: absolute;
         top: 0;
-        left: -100%;
-        width: 300%;
+        left: 0;
+        width: 100%;
         height: 100%;
-        background-image: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        transition: left 0.6s ease;
-        z-index: 1; /* z-index needs to be above the button's content */
+        opacity: 0;
+        cursor: pointer;
       }
 
-      .btn-animated-gradient:hover::before {
-        left: 100%;
-      }
-
-      /* Animated Gradient Border Button */
-      .btn-animated-border {
-          position: relative;
-          overflow: hidden;
-          background-clip: padding-box; /* Ensures the background doesn't spill into the border area */
-          border: 2px solid transparent;
-      }
-      .btn-animated-border::before {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 250%; /* Larger to ensure coverage during rotation */
-          height: 250%;
-          background: conic-gradient(
-              from 0deg,
-              #8b5cf6, #ec4899, #f59e0b, #84cc16, #3b82f6, #8b5cf6
-          );
-          z-index: -1;
-          animation: rotate-gradient 4s linear infinite;
-      }
-
-      @keyframes rotate-gradient {
-          0% {
-              transform: translate(-50%, -50%) rotate(0deg);
-          }
-          100% {
-              transform: translate(-50%, -50%) rotate(360deg);
-          }
+      /* FIX: Add animation for cart items */
+      @keyframes fade-in-item {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
     </style>
   <script type="importmap">
@@ -122,6 +205,7 @@
 </head>
   <body>
     <div id="root"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

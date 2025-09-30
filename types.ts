@@ -1,4 +1,3 @@
-// FIX: Moved Language and TranslatableString definitions here and exported them to fix module resolution errors.
 export type Language = 'en' | 'fa';
 
 export interface TranslatableString {
@@ -6,38 +5,83 @@ export interface TranslatableString {
   fa: string;
 }
 
-export interface MenuCategory {
-  id: string;
-  name: TranslatableString;
-  imageUrl: string;
-}
-
 export interface MenuItem {
   id: number;
   name: TranslatableString;
   description: TranslatableString;
   price: number;
-  prepTime: number; // in minutes
+  prepTime: number;
   imageUrl: string;
   allergens: TranslatableString[];
   isFavorite: boolean;
-  categoryId: string; // Link to the category
+  categoryId: string;
+  restaurantId: string;
+}
+
+export interface MenuCategory {
+  id: string;
+  name: TranslatableString;
+  imageUrl: string;
+  restaurantId: string;
 }
 
 export interface CartItem extends MenuItem {
-    quantity: number;
+  quantity: number;
 }
 
 export type OrderStatus = 'New' | 'In Progress' | 'Completed';
 
 export interface Order {
+  id: string;
+  items: CartItem[];
+  total: number;
+  tableNumber: string;
+  timestamp: Date;
+  status: OrderStatus;
+  restaurantId: string;
+}
+
+export interface User {
+  id: string; // Typically owner ID
+  name: string;
+  restaurantId: string;
+}
+
+export interface Customer {
+    id: string; // phone number
+    name: string;
+    phone: string;
+    joinDate: string;
+    gameProgress: {
+        level: number;
+        totalScore: number;
+        highScore: number;
+    };
+    orderHistory: string[]; // array of order IDs
+    restaurantId: string;
+}
+
+export interface Transaction {
+    orderId: string;
+    amount: number;
+    date: Date;
+    status: 'Success' | 'Failed';
+    restaurantId: string;
+}
+
+export interface GatewaySettings {
+    apiKey: string;
+    secretKey: string;
+}
+
+export interface Reservation {
     id: string;
-    tableNumber: string;
-    items: CartItem[];
-    total: number;
-    status: OrderStatus;
-    timestamp: Date;
-    isPaid: boolean; // Added to track payment status
+    name: string;
+    phone: string;
+    guests: number;
+    date: string;
+    time: string;
+    restaurantId: string;
 }
 
 export interface StylePreset {
@@ -50,23 +94,19 @@ export interface StylePreset {
   background: string;
 }
 
-export interface GatewaySettings {
-    apiKey: string;
-    secretKey: string;
-}
-
-export interface Transaction {
-    orderId: string;
-    amount: number;
-    date: Date;
-    status: 'Paid';
-}
-
-export interface Reservation {
+export interface Restaurant {
     id: string;
     name: string;
-    phone: string;
-    guests: number;
-    date: string;
-    time: string;
+    owner: string;
+    status: 'active' | 'inactive';
+    joinDate: string;
+    credits: number;
+    isGameActive: boolean;
+    isCustomerClubActive: boolean;
+}
+
+export interface PlatformAdmin {
+    id: string;
+    email: string;
+    role: string;
 }

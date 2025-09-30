@@ -4,7 +4,7 @@ import { t } from '../utils/translations';
 import AITextGenerator from './AITextGenerator';
 import AIStudio from './AIStudio'; // Image Generator
 
-const initialFormState: Omit<MenuItem, 'id'> = {
+const initialFormState: Omit<MenuItem, 'id' | 'restaurantId'> = {
     name: { en: '', fa: '' },
     description: { en: '', fa: '' },
     price: 0,
@@ -15,17 +15,18 @@ const initialFormState: Omit<MenuItem, 'id'> = {
     categoryId: '',
 };
 
-type FormState = Omit<MenuItem, 'id'> & { allergensEN?: string; allergensFA?: string };
+type FormState = Omit<MenuItem, 'id' | 'restaurantId'> & { allergensEN?: string; allergensFA?: string };
 
 interface MenuItemFormProps {
   item: MenuItem | null;
+  restaurantId: string;
   onClose: () => void;
-  onSave: (item: MenuItem) => void;
+  onSave: (item: Omit<MenuItem, 'id' | 'restaurantId'>) => void;
   categories: MenuCategory[];
   language: Language;
 }
 
-const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, categories, language }) => {
+const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, restaurantId, onClose, onSave, categories, language }) => {
   const [formData, setFormData] = useState<FormState>(initialFormState);
   const [isTextStudioOpen, setIsTextStudioOpen] = useState(false);
   const [isImageStudioOpen, setIsImageStudioOpen] = useState(false);
@@ -35,7 +36,8 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
     if (item) {
         const allergenStringEN = item.allergens.map(a => a.en).join(', ');
         const allergenStringFA = item.allergens.map(a => a.fa).join(', ');
-        setFormData({ ...item, allergensEN: allergenStringEN, allergensFA: allergenStringFA });
+        const { id, restaurantId, ...editableData } = item;
+        setFormData({ ...editableData, allergensEN: allergenStringEN, allergensFA: allergenStringFA });
     } else {
       setFormData(initialFormState);
     }
@@ -80,7 +82,7 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
     delete (finalData as Partial<FormState>).allergensFA;
 
 
-    onSave({ ...finalData, id: item?.id || 0 });
+    onSave(finalData);
   };
   
   const handleAiTextGenerated = (text: string) => {
@@ -172,7 +174,7 @@ const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, onClose, onSave, cate
                 </div>
             </div>
             <div className="flex items-center">
-                <input type="checkbox" id="isFavorite" name="isFavorite" checked={formData.isFavorite} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                <input type="checkbox" id="isFavorite" name="isFavorite" checked={formData.isFavorite} onChange={handleChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
                 <label htmlFor="isFavorite" className="mx-2 block text-sm text-gray-900">{t('isFavorite', language)}</label>
             </div>
             

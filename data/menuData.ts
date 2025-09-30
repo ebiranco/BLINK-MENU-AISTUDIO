@@ -5,36 +5,43 @@ export const menuCategories: MenuCategory[] = [
     id: 'iranian',
     name: { en: 'Iranian Cuisine', fa: 'غذای ایرانی' },
     imageUrl: 'https://images.unsplash.com/photo-1570462700634-3a7b7a66b579?q=80&w=1974&auto=format&fit=crop',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 'pizza',
     name: { en: 'Pizza', fa: 'پیتزا' },
     imageUrl: 'https://images.unsplash.com/photo-1594007654729-407eedc4be65?q=80&w=1928&auto=format&fit=crop',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 'appetizers',
     name: { en: 'Appetizers', fa: 'پیش‌غذا' },
     imageUrl: 'https://images.unsplash.com/photo-1565895405138-6c3a1555da6a?q=80&w=2070&auto=format&fit=crop',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 'salads',
     name: { en: 'Salads', fa: 'سالاد' },
     imageUrl: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=1974&auto=format&fit=crop',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 'desserts',
     name: { en: 'Desserts', fa: 'دسر' },
     imageUrl: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?q=80&w=1978&auto=format&fit=crop',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 'hot-drinks',
     name: { en: 'Hot Drinks', fa: 'نوشیدنی گرم' },
     imageUrl: 'https://images.unsplash.com/photo-1572442388855-4273a7f096da?q=80&w=1974&auto=format&fit=crop',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 'cold-drinks',
     name: { en: 'Cold Drinks', fa: 'نوشیدنی سرد' },
     imageUrl: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?q=80&w=2070&auto=format&fit=crop',
+    restaurantId: 'blink-restaurant',
   },
 ];
 
@@ -50,6 +57,7 @@ export const menuItems: MenuItem[] = [
     allergens: [],
     isFavorite: true,
     categoryId: 'iranian',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 2,
@@ -61,6 +69,7 @@ export const menuItems: MenuItem[] = [
     allergens: [],
     isFavorite: true,
     categoryId: 'iranian',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 3,
@@ -72,6 +81,7 @@ export const menuItems: MenuItem[] = [
     allergens: [],
     isFavorite: false,
     categoryId: 'iranian',
+    restaurantId: 'blink-restaurant',
   },
 
   // Pizza
@@ -85,6 +95,7 @@ export const menuItems: MenuItem[] = [
     allergens: [{ en: 'Dairy', fa: 'لبنیات' }, { en: 'Gluten', fa: 'گلوتن' }],
     isFavorite: true,
     categoryId: 'pizza',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 5,
@@ -96,6 +107,7 @@ export const menuItems: MenuItem[] = [
     allergens: [{ en: 'Dairy', fa: 'لبنیات' }, { en: 'Gluten', fa: 'گلوتن' }],
     isFavorite: false,
     categoryId: 'pizza',
+    restaurantId: 'blink-restaurant',
   },
 
   // Appetizers
@@ -109,6 +121,7 @@ export const menuItems: MenuItem[] = [
     allergens: [],
     isFavorite: true,
     categoryId: 'appetizers',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 7,
@@ -120,6 +133,7 @@ export const menuItems: MenuItem[] = [
     allergens: [{ en: 'Gluten', fa: 'گلوتن' }],
     isFavorite: false,
     categoryId: 'appetizers',
+    restaurantId: 'blink-restaurant',
   },
 
   // Salads
@@ -133,6 +147,7 @@ export const menuItems: MenuItem[] = [
     allergens: [{ en: 'Dairy', fa: 'لبنیات' }],
     isFavorite: true,
     categoryId: 'salads',
+    restaurantId: 'blink-restaurant',
   },
   
   // Desserts
@@ -146,6 +161,7 @@ export const menuItems: MenuItem[] = [
     allergens: [{ en: 'Dairy', fa: 'لبنیات' }, { en: 'Gluten', fa: 'گلوتن' }],
     isFavorite: true,
     categoryId: 'desserts',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 10,
@@ -157,6 +173,7 @@ export const menuItems: MenuItem[] = [
     allergens: [{ en: 'Dairy', fa: 'لبنیات' }, { en: 'Gluten', fa: 'گلوتن' }],
     isFavorite: false,
     categoryId: 'desserts',
+    restaurantId: 'blink-restaurant',
   },
 
   // Hot Drinks
@@ -170,6 +187,7 @@ export const menuItems: MenuItem[] = [
     allergens: [],
     isFavorite: true,
     categoryId: 'hot-drinks',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 12,
@@ -181,6 +199,7 @@ export const menuItems: MenuItem[] = [
     allergens: [{ en: 'Dairy', fa: 'لبنیات' }],
     isFavorite: false,
     categoryId: 'hot-drinks',
+    restaurantId: 'blink-restaurant',
   },
 
   // Cold Drinks
@@ -194,6 +213,7 @@ export const menuItems: MenuItem[] = [
     allergens: [],
     isFavorite: true,
     categoryId: 'cold-drinks',
+    restaurantId: 'blink-restaurant',
   },
   {
     id: 14,
@@ -205,5 +225,6 @@ export const menuItems: MenuItem[] = [
     allergens: [],
     isFavorite: false,
     categoryId: 'cold-drinks',
+    restaurantId: 'blink-restaurant',
   }
 ];

@@ -4,22 +4,24 @@ import { t } from '../utils/translations';
 
 interface CategoryFormProps {
   category: MenuCategory | null;
+  restaurantId: string;
   onClose: () => void;
-  onSave: (category: MenuCategory) => void;
+  onSave: (category: Omit<MenuCategory, 'id' | 'restaurantId'>) => void;
   language: Language;
 }
 
-const initialFormState: Omit<MenuCategory, 'id'> = {
+const initialFormState: Omit<MenuCategory, 'id' | 'restaurantId'> = {
     name: { en: '', fa: '' },
     imageUrl: '',
 };
 
-const CategoryForm: React.FC<CategoryFormProps> = ({ category, onClose, onSave, language }) => {
-  const [formData, setFormData] = useState<Omit<MenuCategory, 'id'>>(initialFormState);
+const CategoryForm: React.FC<CategoryFormProps> = ({ category, restaurantId, onClose, onSave, language }) => {
+  const [formData, setFormData] = useState<Omit<MenuCategory, 'id' | 'restaurantId'>>(initialFormState);
   
   useEffect(() => {
     if (category) {
-      setFormData({ name: category.name, imageUrl: category.imageUrl });
+      const { id, restaurantId, ...editableData } = category;
+      setFormData(editableData);
     } else {
       setFormData(initialFormState);
     }
@@ -51,7 +53,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onClose, onSave, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...formData, id: category?.id || '' });
+    onSave(formData);
   };
 
   return (
