@@ -15,6 +15,9 @@ import OnlineUsersModal from './OnlineUsersModal';
 import InvitationModal from './InvitationModal';
 import EsmFamilGameModal from './EsmFamilGameModal';
 import { t } from '../utils/translations';
+import { menuItems as mockMenuItems, menuCategories as mockMenuCategories } from '../data/menuData';
+import { customers as mockCustomers } from '../data/customerData';
+import { restaurants as mockRestaurants } from '../data/platformData';
 
 const API_BASE_URL = '/api';
 
@@ -57,36 +60,28 @@ const Menu: React.FC<MenuProps> = (props) => {
     const [esmFamilOpponent, setEsmFamilOpponent] = useState<Customer | 'AI' | null>(null);
     const [esmFamilTimer, setEsmFamilTimer] = useState(30);
 
-    // --- Data Fetching from Backend ---
+    // --- Data Fetching from Mock Data ---
     useEffect(() => {
-        const fetchAllData = async () => {
+        setIsLoading(true);
+        // Simulate API call delay
+        setTimeout(() => {
             try {
-                setIsLoading(true);
-                const [restaurantRes, itemsRes, categoriesRes, customersRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/restaurants/${restaurantId}`),
-                    fetch(`${API_BASE_URL}/menu/items`), // Assuming these are filtered by restaurant on backend in real app
-                    fetch(`${API_BASE_URL}/menu/categories`),
-                    fetch(`${API_BASE_URL}/customers?restaurantId=${restaurantId}`)
-                ]);
-
-                if (!restaurantRes.ok || !itemsRes.ok || !categoriesRes.ok || !customersRes.ok) {
-                    throw new Error('Failed to fetch initial data');
+                const currentRestaurant = mockRestaurants.find(r => r.id === restaurantId);
+                if (!currentRestaurant) {
+                    throw new Error('Restaurant not found in mock data.');
                 }
-
-                setRestaurant(await restaurantRes.json());
-                setMenuItems(await itemsRes.json());
-                setMenuCategories(await categoriesRes.json());
-                setCustomers(await customersRes.json());
+                setRestaurant(currentRestaurant);
+                setMenuItems(mockMenuItems.filter(i => i.restaurantId === restaurantId));
+                setMenuCategories(mockMenuCategories.filter(c => c.restaurantId === restaurantId));
+                setCustomers(mockCustomers.filter(c => c.restaurantId === restaurantId));
                 setError(null);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred');
-                console.error("Fetch error:", err);
+                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
+                 console.error("Mock data loading error:", err);
             } finally {
                 setIsLoading(false);
             }
-        };
-
-        fetchAllData();
+        }, 500); // 500ms delay
     }, [restaurantId]);
 
 
@@ -160,77 +155,62 @@ const Menu: React.FC<MenuProps> = (props) => {
             restaurantId: restaurantId,
             customerId: currentCustomer?.id || null,
         };
-
-        const response = await fetch(`${API_BASE_URL}/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData),
-        });
-        if (!response.ok) {
-            throw new Error('Failed to submit order');
-        }
+        
+        console.log("DEMO: Submitting order", orderData);
+        // In a real app, this would be a fetch call.
+        // const response = await fetch(`${API_BASE_URL}/orders`, { ... });
+        
         setIsPaymentModalOpen(false);
         setCartItems([]);
         setTableNumber('');
     };
 
     const handleLogin = async (phone: string) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/customers/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone }),
-            });
-            if (!response.ok) {
-                 const err = await response.json();
-                 return { success: false, message: err.msg || 'User not found.' };
-            }
-            const customer = await response.json();
+        const customer = mockCustomers.find(c => c.phone === phone);
+        if (customer) {
             setCurrentCustomer(customer);
             return { success: true };
-        } catch (error) {
-            return { success: false, message: 'A network error occurred.' };
         }
+        return { success: false, message: 'User not found.' };
     };
 
     const handleRegister = async (name: string, phone: string) => {
-         try {
-            const response = await fetch(`${API_BASE_URL}/customers/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, phone, restaurantId }),
-            });
-            if (!response.ok) {
-                 const err = await response.json();
-                 return { success: false, message: err.msg || 'Registration failed.' };
-            }
-            const newCustomer = await response.json();
-            setCustomers(prev => [...prev, newCustomer]);
-            setCurrentCustomer(newCustomer);
-            return { success: true };
-        } catch (error) {
-            return { success: false, message: 'A network error occurred.' };
-        }
+         const existing = mockCustomers.find(c => c.phone === phone);
+         if (existing) {
+            return { success: false, message: 'Phone number already registered.' };
+         }
+         const newCustomer: Customer = {
+             id: phone,
+             name,
+             phone,
+             restaurantId,
+             joinDate: new Date().toISOString().split('T')[0],
+             gameProgress: { level: 1, totalScore: 0, highScore: 0 },
+             orderHistory: [],
+         };
+         setCustomers(prev => [...prev, newCustomer]);
+         setCurrentCustomer(newCustomer);
+         return { success: true };
     };
     
     const handleGameEnd = async (finalScore: number) => {
         if (currentCustomer) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/customers/${currentCustomer.id}/game`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ score: finalScore }),
-                });
-                if(!response.ok) throw new Error('Failed to update score');
-                const updatedCustomer = await response.json();
-                
-                // Update state
-                setCurrentCustomer(updatedCustomer);
-                setCustomers(prev => prev.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
-
-            } catch (error) {
-                console.error("Failed to update game score:", error);
+            // DEMO: Update mock data in state
+            const updatedCustomer = {
+                ...currentCustomer,
+                gameProgress: {
+                    ...currentCustomer.gameProgress,
+                    totalScore: currentCustomer.gameProgress.totalScore + finalScore,
+                    highScore: Math.max(currentCustomer.gameProgress.highScore, finalScore),
+                }
+            };
+            // This is a simplified level up logic for the demo
+            if (updatedCustomer.gameProgress.totalScore > (updatedCustomer.gameProgress.level * 1000)) {
+                updatedCustomer.gameProgress.level += 1;
             }
+            
+            setCurrentCustomer(updatedCustomer);
+            setCustomers(prev => prev.map(c => c.id === updatedCustomer.id ? updatedCustomer : c));
         }
     };
 
@@ -249,7 +229,7 @@ const Menu: React.FC<MenuProps> = (props) => {
     if (isLoading) return <div className="min-h-screen bg-gray-900 flex justify-center items-center text-white text-xl">Loading Menu...</div>;
     if (error || !restaurant) return <div className="min-h-screen bg-gray-900 flex justify-center items-center text-red-400 text-xl">Error: {error || 'Restaurant not found'}</div>;
 
-    const backgroundImageUrl = selectedCategory ? selectedCategory.imageUrl : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop';
+    const backgroundImageUrl = selectedCategory ? selectedCategory.imageUrl : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format=fit=crop';
     const itemsForCategory = menuItems.filter(item => item.categoryId === selectedCategory?.id);
     const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 

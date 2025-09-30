@@ -4,9 +4,7 @@ import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import PlatformLogin from './components/PlatformLogin';
 import PlatformAdminDashboard from './components/PlatformAdminDashboard';
-import { PlatformAdmin, GameInvite } from './types';
-
-export type NavigateFunction = (path: string) => void;
+import { PlatformAdmin, GameInvite, NavigateFunction } from './types';
 
 const App: React.FC = () => {
     const [path, setPath] = useState(window.location.hash.substring(2)); // remove #/
@@ -22,7 +20,8 @@ const App: React.FC = () => {
 
     const navigate: NavigateFunction = (newPath) => {
         window.location.hash = `/${newPath}`;
-        setPath(newPath);
+        // By removing setPath here, we make the hashchange listener the single source of truth.
+        // This prevents potential race conditions between direct state updates and event-driven updates.
     };
 
     useEffect(() => {

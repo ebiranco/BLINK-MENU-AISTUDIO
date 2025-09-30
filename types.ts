@@ -14,6 +14,9 @@ export type TranslatableString = {
   fa: string;
 };
 
+// Shared navigation function type
+export type NavigateFunction = (path: string) => void;
+
 export type Language = 'en' | 'fa';
 
 export interface MenuItem {

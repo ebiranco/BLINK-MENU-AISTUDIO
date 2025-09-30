@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { t } from '../utils/translations';
-import { NavigateFunction } from '../App';
+import { NavigateFunction } from '../types';
 
 // Default language for the landing page is Persian ('fa') as requested.
 const lang = 'fa';

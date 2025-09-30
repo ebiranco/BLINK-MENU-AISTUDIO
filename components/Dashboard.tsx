@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { NavigateFunction } from '../App';
+import { NavigateFunction } from '../types';
 import { User, Order, MenuItem, MenuCategory, OrderStatus, Language, Transaction, Restaurant, Customer } from '../types';
 import { t, formatCurrency } from '../utils/translations';
 import MenuItemForm from './MenuItemForm';
@@ -7,6 +7,10 @@ import CategoryForm from './CategoryForm';
 import AIStudio from './AIStudio';
 import FinancialsView from './FinancialsView';
 import CreditPurchaseModal from './CreditPurchaseModal';
+import { menuItems as mockMenuItems, menuCategories as mockMenuCategories } from '../data/menuData';
+import { customers as mockCustomers } from '../data/customerData';
+import { restaurants as mockRestaurants, orders as mockOrders, transactions as mockTransactions } from '../data/platformData';
+
 
 const API_BASE_URL = '/api';
 
@@ -35,33 +39,28 @@ const Dashboard: React.FC<DashboardProps> = ({ restaurantId, onNavigate }) => {
     const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
     const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
 
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(() => {
         setIsLoading(true);
-        try {
-            const [restaurantRes, itemsRes, categoriesRes, ordersRes, customersRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/restaurants/${restaurantId}`),
-                fetch(`${API_BASE_URL}/menu/items`),
-                fetch(`${API_BASE_URL}/menu/categories`),
-                fetch(`${API_BASE_URL}/orders`),
-                fetch(`${API_BASE_URL}/customers?restaurantId=${restaurantId}`),
-            ]);
-            if (!restaurantRes.ok || !itemsRes.ok || !categoriesRes.ok || !ordersRes.ok || !customersRes.ok) {
-                throw new Error('Failed to fetch dashboard data');
-            }
-            
-            setCurrentRestaurant(await restaurantRes.json());
-            setMenuItems(await itemsRes.json());
-            setMenuCategories(await categoriesRes.json());
-            const ordersData = await ordersRes.json();
-            setOrders(ordersData.map((o: any) => ({ ...o, timestamp: new Date(o.timestamp) })));
-            setCustomers(await customersRes.json());
+        // Simulate API call delay
+        setTimeout(() => {
+            try {
+                const currentRestaurantData = mockRestaurants.find(r => r.id === restaurantId);
+                if (!currentRestaurantData) throw new Error("Restaurant not found in mock data");
+                
+                setCurrentRestaurant(currentRestaurantData);
+                setMenuItems(mockMenuItems.filter(i => i.restaurantId === restaurantId));
+                setMenuCategories(mockMenuCategories.filter(c => c.restaurantId === restaurantId));
+                setOrders(mockOrders.filter(o => o.restaurantId === restaurantId));
+                setCustomers(mockCustomers.filter(c => c.restaurantId === restaurantId));
+                setTransactions(mockTransactions.filter(t => t.restaurantId === restaurantId));
 
-            setError(null);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        } finally {
-            setIsLoading(false);
-        }
+                setError(null);
+            } catch (err) {
+                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            } finally {
+                setIsLoading(false);
+            }
+        }, 500);
     }, [restaurantId]);
 
     useEffect(() => {
@@ -70,90 +69,65 @@ const Dashboard: React.FC<DashboardProps> = ({ restaurantId, onNavigate }) => {
         fetchData();
     }, [language, fetchData]);
     
-    // --- API Call Handlers ---
+    // --- API Call Handlers (Simulated for Demo) ---
     const onLogout = () => {
         // In a real app, this would clear tokens/session
         onNavigate('');
     };
 
-    const onUpdateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus }),
-            });
-            if (!response.ok) throw new Error('Failed to update order status');
-            setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: newStatus} : o));
-        } catch (err) {
-            console.error(err);
-            alert('Error updating order status.');
-        }
+    const onUpdateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
+        setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: newStatus} : o));
     };
     
-    const onPurchaseCredits = async (creditAmount: number) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/restaurants/${restaurantId}/credits`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: creditAmount }),
-            });
-            if (!response.ok) throw new Error('Failed to purchase credits');
-            const updatedRestaurant = await response.json();
+    const onPurchaseCredits = (creditAmount: number) => {
+        if(currentRestaurant) {
+            const updatedRestaurant = { ...currentRestaurant, credits: currentRestaurant.credits + creditAmount };
             setCurrentRestaurant(updatedRestaurant);
-        } catch (err) {
-            console.error(err);
-            alert('Error purchasing credits.');
+            // In a real app, you would also update the master data source
         }
     };
 
-    const onToggleFeature = async (feature: 'game' | 'customerClub', cost: number) => {
+    const onToggleFeature = (feature: 'game' | 'customerClub', cost: number) => {
         if (!currentRestaurant || currentRestaurant.credits < cost) {
             alert(t('insufficientCredits', language));
             setIsCreditModalOpen(true);
             return;
         }
-         try {
-            const response = await fetch(`${API_BASE_URL}/restaurants/${restaurantId}/features`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ feature, cost }),
-            });
-            if (!response.ok) throw new Error('Failed to activate feature');
-            const updatedRestaurant = await response.json();
-            setCurrentRestaurant(updatedRestaurant);
-        } catch (err) {
-            console.error(err);
-            alert('Error activating feature.');
+        
+        const updatedRestaurant = { ...currentRestaurant, credits: currentRestaurant.credits - cost };
+        if (feature === 'game') {
+            updatedRestaurant.isGameActive = true;
+        } else if (feature === 'customerClub') {
+            updatedRestaurant.isCustomerClubActive = true;
         }
+        setCurrentRestaurant(updatedRestaurant);
     };
     
-    // NOTE: Menu/Category modifications would be implemented similarly with API calls
     const handleSaveItem = (item: Omit<MenuItem, 'id' | 'restaurantId'>) => {
-        console.log("TODO: API call to save item", item);
-        alert("DEMO: Item save functionality needs backend wiring.");
-        fetchData(); // Refetch data after change
+        console.log("DEMO: Saving item", item);
+        alert("DEMO: Item save functionality is for demonstration and does not persist.");
+        fetchData(); // Refetch mock data to reset any temp changes
         setIsItemFormOpen(false);
         setEditingItem(null);
     };
     const handleSaveCategory = (category: Omit<MenuCategory, 'id' | 'restaurantId'>) => {
-        console.log("TODO: API call to save category", category);
-        alert("DEMO: Category save functionality needs backend wiring.");
+        console.log("DEMO: Saving category", category);
+        alert("DEMO: Category save functionality is for demonstration and does not persist.");
         fetchData();
         setIsCategoryFormOpen(false);
         setEditingCategory(null);
     };
     const handleDeleteItem = (itemId: number) => {
         if (window.confirm(t('confirmDelete', language))) {
-            console.log("TODO: API call to delete item", itemId);
-            alert("DEMO: Item delete functionality needs backend wiring.");
+            console.log("DEMO: Deleting item", itemId);
+            alert("DEMO: Item delete functionality is for demonstration and does not persist.");
             fetchData();
         }
     };
     const handleDeleteCategory = (categoryId: string) => {
         if (window.confirm(t('confirmDelete', language))) {
-            console.log("TODO: API call to delete category", categoryId);
-            alert("DEMO: Category delete functionality needs backend wiring.");
+            console.log("DEMO: Deleting category", categoryId);
+            alert("DEMO: Category delete functionality is for demonstration and does not persist.");
             fetchData();
         }
     };
