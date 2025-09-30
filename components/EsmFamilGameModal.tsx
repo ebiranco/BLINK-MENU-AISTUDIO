@@ -47,8 +47,8 @@ const EsmFamilGameModal: React.FC<EsmFamilGameModalProps> = ({ isOpen, onClose, 
 
         if (opponent === 'AI') {
             try {
-                if (!process.env.API_KEY) throw new Error("API Key not configured");
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                if (!window.APP_CONFIG?.API_KEY) throw new Error("API Key not configured. Please run the setup script.");
+                const ai = new GoogleGenAI({ apiKey: window.APP_CONFIG.API_KEY });
                 const prompt = `You are playing the Persian word game 'Esm Famil'. The starting letter is '${letter}'. Provide a single, valid, common Persian answer for each category.`;
                 
                 const response = await ai.models.generateContent({

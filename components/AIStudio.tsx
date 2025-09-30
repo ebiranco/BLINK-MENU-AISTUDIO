@@ -171,8 +171,8 @@ const PhotographyStudio: React.FC<{ language: Language }> = ({ language }) => {
         setGeneratedImage(null);
 
         try {
-            if (!process.env.API_KEY) throw new Error("API_KEY environment variable not set.");
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            if (!window.APP_CONFIG?.API_KEY) throw new Error("API_KEY is not configured. Please run the setup script.");
+            const ai = new GoogleGenAI({ apiKey: window.APP_CONFIG.API_KEY });
 
             const parts: Part[] = [await imageToPart(productImage)];
             let promptText = '';
@@ -376,8 +376,8 @@ const VideoStudio: React.FC<{ language: Language }> = ({ language }) => {
         }, 5000);
 
         try {
-            if (!process.env.API_KEY) throw new Error("API_KEY environment variable not set.");
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            if (!window.APP_CONFIG?.API_KEY) throw new Error("API_KEY is not configured. Please run the setup script.");
+            const ai = new GoogleGenAI({ apiKey: window.APP_CONFIG.API_KEY });
             const prompt = constructVideoPrompt();
             const imageBase64 = await fileToBase64(productImage);
 
@@ -394,7 +394,7 @@ const VideoStudio: React.FC<{ language: Language }> = ({ language }) => {
             
             const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
             if (downloadLink) {
-                 const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+                 const response = await fetch(`${downloadLink}&key=${window.APP_CONFIG.API_KEY}`);
                  const blob = await response.blob();
                  const objectUrl = URL.createObjectURL(blob);
                  setVideoUrl(objectUrl);

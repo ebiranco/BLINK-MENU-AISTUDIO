@@ -1,3 +1,12 @@
+// Global configuration object injected by config.js
+declare global {
+  interface Window {
+    APP_CONFIG: {
+      API_KEY: string;
+    };
+  }
+}
+
 // FIX: Removed import of TranslatableString to break a circular dependency.
 // The type is now defined directly in this file.
 export type TranslatableString = {
