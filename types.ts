@@ -1,9 +1,11 @@
-export type Language = 'en' | 'fa';
-
-export interface TranslatableString {
+// FIX: Removed import of TranslatableString to break a circular dependency.
+// The type is now defined directly in this file.
+export type TranslatableString = {
   en: string;
   fa: string;
-}
+};
+
+export type Language = 'en' | 'fa';
 
 export interface MenuItem {
   id: number;
@@ -60,6 +62,17 @@ export interface Customer {
     orderHistory: string[]; // array of order IDs
     restaurantId: string;
 }
+
+export interface GameInvite {
+    from: Customer;
+    to: Customer;
+    status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+    game: 'EsmFamil';
+    settings: {
+        timer: number;
+    };
+}
+
 
 export interface Transaction {
     orderId: string;

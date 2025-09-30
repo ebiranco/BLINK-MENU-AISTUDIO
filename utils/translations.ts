@@ -1,4 +1,4 @@
-import { Language } from '../types';
+import { Language, TranslatableString } from '../types';
 
 const translations: { [key: string]: { en: string; fa: string } } = {
   // General
@@ -17,27 +17,27 @@ const translations: { [key: string]: { en: string; fa: string } } = {
   // Features Section
   whyChooseBlink: { en: 'Why Choose BLINK?', fa: 'چرا BLINK را انتخاب کنید؟' },
   whyChooseSubtitle: { en: 'We go beyond a simple QR code. We create an unforgettable experience for your customers that increases engagement and sales.', fa: 'ما فراتر از یک QR کد ساده عمل می‌کنیم. ما تجربه‌ای فراموش‌نشدنی برای مشتریان شما خلق می‌کنیم که تعامل و فروش را افزایش می‌دهد.' },
-  featureStunningTitle: { en: 'AI Food Photography', fa: 'عکاسی غذا با هوش مصنوعی' },
-  featureStunningDesc: { en: 'No photographer? No problem. Generate breathtaking, professional photos for your menu items in seconds.', fa: 'عکاس ندارید؟ مشکلی نیست. در چند ثانیه عکس‌های حرفه‌ای و خیره‌کننده برای آیتم‌های منوی خود بسازید.' },
-  featureGameTitle: { en: 'Gamified Experience', fa: 'تجربه بازی‌گونه' },
-  featureGameDesc: { en: 'Keep customers entertained while they wait with a fun, interactive game, boosting loyalty and brand recall.', fa: 'مشتریان را حین انتظار با یک بازی سرگرم‌کننده و تعاملی مشغول نگه دارید و وفاداری به برند را افزایش دهید.' },
-  featureClubTitle: { en: 'Customer Club', fa: 'باشگاه مشتریان' },
-  featureClubDesc: { en: 'Build a loyal community. Track customer orders, game scores, and offer personalized rewards.', fa: 'یک جامعه وفادار بسازید. سفارشات، امتیازات بازی و پاداش‌های شخصی‌سازی شده مشتریان را دنبال کنید.' },
-  featureUpdatesTitle: { en: 'Instant Menu Updates', fa: 'بروزرسانی آنی منو' },
-  featureUpdatesDesc: { en: 'Update prices, add new items, or mark something as "sold out" in real-time. No more reprinting menus.', fa: 'قیمت‌ها را بروز کنید، آیتم‌های جدید اضافه کنید یا موجودی را در لحظه تغییر دهید. دیگر نیازی به چاپ مجدد منو نیست.' },
+  featureStudioTitle: { en: 'AI Creative Studio', fa: 'استودیو خلاق هوش مصنوعی' },
+  featureStudioDesc: { en: "Unleash your creativity with BLINK's AI Studio. Transform simple dish photos into cinematic images, create engaging video ads for social media, and intelligently generate appetizing menu descriptions. No photographer needed.", fa: 'با استودیوی خلاق هوش مصنوعی BLINK، خلاقیت خود را آزاد کنید. عکس‌های معمولی غذا را به تصاویر حرفه‌ای و سینمایی تبدیل کنید، ویدیوهای تبلیغاتی کوتاه و جذاب برای شبکه‌های اجتماعی بسازید، و توضیحات اشتهاآور برای منوی خود به صورت هوشمند تولید کنید. دیگر نیازی به عکاس یا نویسنده حرفه‌ای ندارید.' },
+  featureSocialGameTitle: { en: 'Social & Competitive Gaming', fa: 'بازی و سرگرمی اجتماعی' },
+  featureSocialGameDesc: { en: "Turn waiting time into a memorable social experience. Keep customers entertained with live, two-player 'Esm Famil' games, creating an exciting and friendly atmosphere that fosters competition and builds lasting memories, turning them into loyal patrons.", fa: 'زمان انتظار برای غذا را به یک تجربه اجتماعی و به یاد ماندنی تبدیل کنید. با بازی‌های دو نفره و زنده‌ی "اسم فامیل"، مشتریان خود را سرگرم نگه دارید و فضایی پر از هیجان و دوستی در رستوران ایجاد کنید. این تجربه جدید و منحصر به فرد، نه تنها مشتریان را درگیر می‌کند بلکه با ایجاد حس رقابت سالم و خاطرات خوش، آن‌ها را به مشتریانی وفادار و دائمی تبدیل می‌کند.' },
+  featureLoyaltyTitle: { en: 'Customer Club & Loyalty', fa: 'باشگاه مشتریان وفادار' },
+  featureLoyaltyDesc: { en: 'Get closer to your customers with every game and order. Our platform automatically builds customer profiles based on their activity. View this data in the "Customer Club," identify your top patrons, and encourage repeat business with personalized rewards.', fa: 'با هر بازی و هر سفارش، یک قدم به مشتریان خود نزدیک‌تر شوید. پلتفرم ما به طور خودکار پروفایل مشتریان را بر اساس فعالیت‌هایشان (سفارشات و امتیازات بازی) ایجاد می‌کند. شما می‌توانید این داده‌ها را در "باشگاه مشتریان" مشاهده کرده، مشتریان برتر خود را بشناسید و با پیشنهادات و پاداش‌های شخصی‌سازی شده، آن‌ها را به بازگشت دوباره تشویق کنید.' },
+  featureDashboardTitle: { en: 'Powerful Management Dashboard', fa: 'داشبورد مدیریت یکپارچه' },
+  featureDashboardDesc: { en: 'Manage every aspect of your digital restaurant from a single dashboard. View live orders, edit your menu in real-time, use the AI studio to generate content, and access your financial reports and customer club. Complete control, simplified.', fa: 'تمام جنبه‌های رستوران دیجیتال خود را از یک داشبورد یکپارچه و قدرتمند مدیریت کنید. سفارشات زنده را در یک نمای کانبان مشاهده کنید، منوی خود را در لحظه ویرایش کنید، از استودیوی هوش مصنوعی برای تولید محتوا استفاده کنید، و به گزارشات مالی و باشگاه مشتریان خود دسترسی داشته باشید. کنترل کامل، به سادگی یک کلیک.' },
   
   // Pricing
   pricingTitle: { en: 'Simple, Transparent Pricing', fa: 'قیمت‌گذاری ساده و شفاف' },
   pricingSubtitle: { en: 'One plan that includes everything you need to get started. No hidden fees.', fa: 'یک طرح جامع که همه چیز برای شروع را شامل می‌شود. بدون هیچ هزینه پنهانی.' },
   planProfessional: { en: 'Professional Plan', fa: 'طرح حرفه‌ای' },
-  planProfessionalPrice: { en: '3,000,000', fa: '۳,۰۰۰,۰۰۰' },
+  planProfessionalPrice: { en: '6,000,000', fa: '۶,۰۰۰,۰۰۰' },
   perYear: { en: ' / year', fa: ' / سالانه' },
-  quarterlyPayment: { en: 'Payable in quarterly installments of 750,000 Toman', fa: 'قابل پرداخت در اقساط فصلی ۷۵۰,۰۰۰ تومانی' },
+  quarterlyPayment: { en: 'Payable in quarterly installments of 1,500,000 Toman', fa: 'قابل پرداخت در اقساط فصلی ۱,۵۰۰,۰۰۰ تومانی' },
   featureUnlimitedItems: { en: 'Unlimited Menu Items & Categories', fa: 'آیتم‌ها و دسته‌بندی‌های نامحدود' },
   featureRealtimeUpdates: { en: 'Real-time Updates', fa: 'بروزرسانی لحظه‌ای' },
   featureAnalytics: { en: 'Basic Analytics', fa: 'تحلیل‌های پایه' },
   featureOnlineSupport: { en: 'Email & Ticket Support', fa: 'پشتیبانی آنلاین' },
-  featureInitialCredits: { en: '100 Initial AI Credits', fa: '۱۰۰ اعتبار اولیه هوش مصنوعی' },
+  featureInitialCredits: { en: '100 Initial Credits', fa: '۱۰۰ اعتبار اولیه' },
   creditFeaturesTitle: { en: 'Pay-As-You-Go Features', fa: 'ویژگی‌های مبتنی بر اعتبار' },
   creditFeaturesDesc: { en: 'Our core features are included. Advanced AI and engagement tools use a credit system, so you only pay for what you use.', fa: 'ویژگی‌های اصلی ما در طرح گنجانده شده‌اند. ابزارهای پیشرفته هوش مصنوعی و تعاملی از سیستم اعتبار استفاده می‌کنند تا فقط برای آنچه استفاده می‌کنید هزینه بپردازید.' },
   aiPhotoCredit: { en: '10 Credits / image', fa: '۱۰ اعتبار / هر عکس' },
@@ -99,6 +99,7 @@ const translations: { [key: string]: { en: string; fa: string } } = {
   // Menu Page
   pleaseSelectCategory: { en: 'Please Select a Category', fa: 'لطفا یک دسته‌بندی انتخاب کنید' },
   backToCategories: { en: 'Back to Categories', fa: 'بازگشت به دسته‌بندی‌ها' },
+  backToHome: { en: 'Back to Home', fa: 'بازگشت به صفحه اصلی' },
   viewMode: { en: 'View Mode', fa: 'حالت نمایش' },
   immersive: { en: 'Immersive', fa: 'تمام‌صفحه' },
   grid: { en: 'Grid', fa: 'شبکه‌ای' },
@@ -198,7 +199,42 @@ const translations: { [key: string]: { en: string; fa: string } } = {
   levelUp: { en: 'Level Up!', fa: 'مرحله بعد!' },
   level: { en: 'Level', fa: 'مرحله' },
   lives: { en: 'Lives', fa: 'جان‌ها' },
+  gameZone: { en: 'Game Zone', fa: 'گیم سنتر' },
+  onlineUsers: { en: 'Online', fa: 'آنلاین' },
+  challenge: { en: 'Challenge', fa: 'چالش' },
+  inviteSent: { en: 'Invite Sent', fa: 'دعوت ارسال شد' },
+  invitationFrom: { en: 'Invitation from', fa: 'دعوت‌نامه از طرف' },
+  wantsToPlay: { en: 'wants to play Esm Famil with you!', fa: 'می‌خواهد با شما اسم فامیل بازی کند!' },
+  accept: { en: 'Accept', fa: 'قبول' },
+  decline: { en: 'Decline', fa: 'رد کردن' },
+  selectGame: { en: 'Select a Game', fa: 'یک بازی انتخاب کنید' },
+  blinkBites: { en: 'Blink Bites', fa: 'لقمه‌های سریع' },
+  esmFamil: { en: 'Esm Famil', fa: 'اسم فامیل' },
   
+  // Esm Famil Game
+  esmFamil_name: { en: 'Name', fa: 'اسم' },
+  esmFamil_family: { en: 'Family', fa: 'فامیل' },
+  esmFamil_city: { en: 'City', fa: 'شهر' },
+  esmFamil_country: { en: 'Country', fa: 'کشور' },
+  esmFamil_animal: { en: 'Animal', fa: 'حیوان' },
+  esmFamil_food: { en: 'Food', fa: 'غذا' },
+  esmFamil_object: { en: 'Object', fa: 'اشیاء' },
+  esmFamil_stop: { en: 'Stop!', fa: 'استپ!' },
+  esmFamil_letter: { en: 'Letter', fa: 'حرف' },
+  esmFamil_waiting: { en: 'Waiting for opponent...', fa: 'در انتظار حریف...' },
+  esmFamil_results: { en: 'Results', fa: 'نتایج' },
+  esmFamil_you: { en: 'You', fa: 'شما' },
+  esmFamil_opponent: { en: 'Opponent', fa: 'حریف' },
+  esmFamil_yourScore: { en: 'Your Score', fa: 'امتیاز شما' },
+  esmFamil_opponentScore: { en: 'Opponent Score', fa: 'امتیاز حریف' },
+  esmFamil_draw: { en: "It's a draw!", fa: 'مساوی شد!' },
+  esmFamil_youWin: { en: 'You Win!', fa: 'شما برنده شدید!' },
+  esmFamil_youLose: { en: 'You Lose!', fa: 'شما باختید!' },
+  esmFamil_playWithAI: { en: 'Play vs AI', fa: 'بازی با کامپیوتر' },
+  esmFamil_playWithHuman: { en: 'Play vs Human', fa: 'بازی با انسان' },
+  esmFamil_setTimer: { en: 'Timer', fa: 'زمان‌سنج' },
+  esmFamil_seconds: { en: 's', fa: 'ثانیه' },
+
   // Customer Club
   customerClub: { en: 'Customer Club', fa: 'باشگاه مشتریان' },
   register: { en: 'Register', fa: 'ثبت نام' },
@@ -314,3 +350,7 @@ export const formatCurrency = (amount: number, language: Language): string => {
   const toman = amount;
   return `T ${toman.toLocaleString('en-US')}`;
 };
+
+// Also export TranslatableString type for use in other files
+// FIX: Removed redundant export that was causing circular dependency issues.
+// export type { TranslatableString } from '../types';

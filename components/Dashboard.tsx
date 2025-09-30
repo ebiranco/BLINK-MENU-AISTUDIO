@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, NavigateFunction } from '../App';
-import { Order, MenuItem, MenuCategory, OrderStatus, Language, Transaction, Restaurant, Customer } from '../types';
+// FIX: The User type should be imported from '../types', not '../App'.
+import { NavigateFunction } from '../App';
+import { User, Order, MenuItem, MenuCategory, OrderStatus, Language, Transaction, Restaurant, Customer } from '../types';
 import { t, formatCurrency } from '../utils/translations';
 import MenuItemForm from './MenuItemForm';
 import CategoryForm from './CategoryForm';

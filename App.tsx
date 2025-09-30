@@ -7,7 +7,7 @@ import PlatformAdminDashboard from './components/PlatformAdminDashboard';
 import { menuItems as initialMenuItems, menuCategories as initialMenuCategories } from './data/menuData';
 import { initialRestaurants, initialPlatformAdmins } from './data/platformData';
 import { initialCustomers } from './data/customerData';
-import { MenuItem, MenuCategory, Order, Restaurant, User, PlatformAdmin, Customer, Transaction, OrderStatus } from './types';
+import { MenuItem, MenuCategory, Order, Restaurant, User, PlatformAdmin, Customer, Transaction, OrderStatus, GameInvite } from './types';
 
 export type NavigateFunction = (path: string) => void;
 
@@ -22,6 +22,7 @@ const App: React.FC = () => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [adminUser, setAdminUser] = useState<PlatformAdmin | null>(null);
+    const [gameInvites, setGameInvites] = useState<GameInvite[]>([]);
 
     const navigate: NavigateFunction = (newPath) => {
         window.location.hash = `/${newPath}`;
@@ -61,6 +62,25 @@ const App: React.FC = () => {
         navigate('platform-login');
     }
 
+    const handleSendInvite = (from: Customer, to: Customer, settings: { timer: number }) => {
+        const newInvite: GameInvite = { from, to, status: 'pending', game: 'EsmFamil', settings };
+        setGameInvites(prev => [...prev.filter(inv => !(inv.from.id === from.id && inv.to.id === to.id)), newInvite]);
+        // In a real app, this would be sent over a websocket.
+        // For demo, we'll just alert the user.
+        setTimeout(() => {
+            alert(`DEMO: Invitation sent to ${to.name}. In this demo, you'll receive the invite popup to test the flow.`);
+        }, 500);
+    };
+
+    const handleRespondToInvite = (invite: GameInvite, response: 'accepted' | 'declined' | 'cancelled') => {
+        setGameInvites(prev => prev.map(inv => inv.from.id === invite.from.id && inv.to.id === invite.to.id ? { ...inv, status: response } : inv));
+        // Clean up old invites
+        setTimeout(() => {
+             setGameInvites(prev => prev.filter(inv => inv.from.id !== invite.from.id || inv.to.id !== invite.to.id));
+        }, 5000);
+    };
+
+
     const currentRestaurant = restaurants.find(r => r.id === (user?.restaurantId || 'blink-restaurant')) || restaurants[0];
 
     const renderPage = () => {
@@ -77,6 +97,10 @@ const App: React.FC = () => {
                     menuCategories={menuCategories.filter(c => c.restaurantId === restaurantId)}
                     customers={customers.filter(c => c.restaurantId === restaurantId)}
                     setCustomers={setCustomers}
+                    gameInvites={gameInvites}
+                    onSendInvite={handleSendInvite}
+                    onRespondToInvite={handleRespondToInvite}
+                    onNavigate={navigate}
                 />;
             case 'dashboard':
                 if (!user) {

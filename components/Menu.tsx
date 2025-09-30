@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MenuCategory, MenuItem, Language, CartItem, Restaurant, Customer, Reservation } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { MenuCategory, MenuItem, Language, CartItem, Restaurant, Customer, Reservation, GameInvite } from '../types';
 import Header from './Header';
 import CategoryView from './CategoryView';
 import ImmersiveView from './ImmersiveView';
@@ -10,6 +10,10 @@ import ReservationModal from './ReservationModal';
 import AuthModal from './AuthModal';
 import GameModal from './GameModal';
 import LeaderboardModal from './LeaderboardModal';
+import GameSelectionModal from './GameSelectionModal';
+import OnlineUsersModal from './OnlineUsersModal';
+import InvitationModal from './InvitationModal';
+import EsmFamilGameModal from './EsmFamilGameModal';
 import { t } from '../utils/translations';
 
 interface MenuProps {
@@ -18,9 +22,14 @@ interface MenuProps {
   menuCategories: MenuCategory[];
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
+  gameInvites: GameInvite[];
+  onSendInvite: (from: Customer, to: Customer, settings: { timer: number }) => void;
+  onRespondToInvite: (invite: GameInvite, response: 'accepted' | 'declined' | 'cancelled') => void;
+  onNavigate: (path: string) => void;
 }
 
-const Menu: React.FC<MenuProps> = ({ restaurant, menuItems, menuCategories, customers, setCustomers }) => {
+const Menu: React.FC<MenuProps> = (props) => {
+    const { restaurant, menuItems, menuCategories, customers, setCustomers, gameInvites, onSendInvite, onRespondToInvite, onNavigate } = props;
     const [language, setLanguage] = useState<Language>('fa');
     const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
@@ -31,14 +40,48 @@ const Menu: React.FC<MenuProps> = ({ restaurant, menuItems, menuCategories, cust
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [isGameModalOpen, setIsGameModalOpen] = useState(false);
+    const [isGameSelectionModalOpen, setIsGameSelectionModalOpen] = useState(false);
+    const [isBlinkBitesModalOpen, setIsBlinkBitesModalOpen] = useState(false);
     const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
+    const [isOnlineUsersModalOpen, setIsOnlineUsersModalOpen] = useState(false);
+    const [isEsmFamilModalOpen, setIsEsmFamilModalOpen] = useState(false);
     const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null);
+    const [esmFamilOpponent, setEsmFamilOpponent] = useState<Customer | 'AI' | null>(null);
+    const [esmFamilTimer, setEsmFamilTimer] = useState(30);
+
+    // --- Real-time Invite Handling ---
+    const incomingInvite = useMemo(() => {
+        // For demo purposes, we allow a user to receive their own sent invite to test the flow easily.
+        // In a real app, you would filter `inv.from.id !== currentCustomer?.id`.
+        return gameInvites.find(inv => inv.to.id === currentCustomer?.id && inv.status === 'pending');
+    }, [gameInvites, currentCustomer]);
+
+    const acceptedInvite = useMemo(() => {
+        // Find an invite I sent that was accepted, or an invite I accepted.
+        return gameInvites.find(inv => inv.status === 'accepted' && (inv.from.id === currentCustomer?.id || inv.to.id === currentCustomer?.id));
+    }, [gameInvites, currentCustomer]);
+    
+    useEffect(() => {
+        if (acceptedInvite) {
+            const opponent = acceptedInvite.from.id === currentCustomer?.id ? acceptedInvite.to : acceptedInvite.from;
+            setEsmFamilOpponent(opponent);
+            setEsmFamilTimer(acceptedInvite.settings.timer);
+            // Close other modals and open the game
+            setIsOnlineUsersModalOpen(false);
+            setIsGameSelectionModalOpen(false);
+            setIsEsmFamilModalOpen(true);
+            // Clean up the invite from state after starting the game
+            onRespondToInvite(acceptedInvite, 'accepted'); 
+        }
+    }, [acceptedInvite, currentCustomer, onRespondToInvite]);
+    
     
     useEffect(() => {
         document.documentElement.lang = language;
         document.documentElement.dir = language === 'fa' ? 'rtl' : 'ltr';
     }, [language]);
+
+    const onlineUsers = useMemo(() => customers.filter(c => c.id !== currentCustomer?.id), [customers, currentCustomer]);
 
     const handleAddToCart = (item: MenuItem, quantity: number = 1) => {
         setCartItems(prev => {
@@ -117,9 +160,21 @@ const Menu: React.FC<MenuProps> = ({ restaurant, menuItems, menuCategories, cust
         }
     };
 
+    const handleStartEsmFamilAI = () => {
+        setEsmFamilOpponent('AI');
+        setEsmFamilTimer(45);
+        setIsGameSelectionModalOpen(false);
+        setIsEsmFamilModalOpen(true);
+    };
+
+    const handleStartEsmFamilHuman = () => {
+        setIsGameSelectionModalOpen(false);
+        setIsOnlineUsersModalOpen(true);
+    };
+
     const LEVEL_THRESHOLDS = [0, 200, 500, 1000, 2000, 3500, 5000, 7500, 10000, 15000, 20000];
 
-    const backgroundImageUrl = selectedCategory ? selectedCategory.imageUrl : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto-format=fit=crop';
+    const backgroundImageUrl = selectedCategory ? selectedCategory.imageUrl : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format=fit=crop';
     const itemsForCategory = menuItems.filter(item => item.categoryId === selectedCategory?.id);
     const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -129,7 +184,20 @@ const Menu: React.FC<MenuProps> = ({ restaurant, menuItems, menuCategories, cust
             <div className="absolute inset-0 bg-black/40" />
 
             <div className="relative z-10 flex flex-col min-h-screen">
-                <Header restaurant={restaurant} language={language} setLanguage={setLanguage} onCartClick={() => setIsCartOpen(true)} cartItemCount={cartItemCount} />
+                <Header 
+                    restaurant={restaurant} 
+                    language={language} 
+                    setLanguage={setLanguage} 
+                    onCartClick={() => setIsCartOpen(true)} 
+                    cartItemCount={cartItemCount} 
+                    isGameActive={restaurant.isGameActive}
+                    onGameZoneClick={() => setIsGameSelectionModalOpen(true)}
+                    onlineUserCount={onlineUsers.length}
+                    onOnlineUsersClick={() => setIsOnlineUsersModalOpen(true)}
+                    onAuthClick={() => setIsAuthModalOpen(true)}
+                    currentCustomer={currentCustomer}
+                    onNavigate={onNavigate}
+                />
                 
                 <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
                     {selectedCategory ? (
@@ -152,19 +220,9 @@ const Menu: React.FC<MenuProps> = ({ restaurant, menuItems, menuCategories, cust
                 </main>
                 
                 <footer className="py-6 text-center text-gray-400 text-sm">
-                    {restaurant.isGameActive && (
-                        <div className="mb-4">
-                             {!currentCustomer ? (
-                                <button onClick={() => setIsAuthModalOpen(true)} className="btn-glass font-bold py-2 px-6 rounded-full text-lg mx-2">{t('customerClub', language)}</button>
-                            ) : (
-                                <>
-                                <button onClick={() => setIsGameModalOpen(true)} className="btn-glass font-bold py-2 px-6 rounded-full text-lg mx-2">{t('playGame', language)}</button>
-                                <button onClick={() => setIsLeaderboardModalOpen(true)} className="btn-glass font-bold py-2 px-6 rounded-full text-lg mx-2">{t('leaderboard', language)}</button>
-                                </>
-                            )}
-                        </div>
-                    )}
-                    <button onClick={() => setIsReservationModalOpen(true)} className="hover:text-white transition-colors">{t('reserveTable', language)}</button>
+                    <button onClick={() => setIsLeaderboardModalOpen(true)} className="hover:text-white transition-colors mx-2">{t('leaderboard', language)}</button>
+                     | 
+                    <button onClick={() => setIsReservationModalOpen(true)} className="hover:text-white transition-colors mx-2">{t('reserveTable', language)}</button>
                 </footer>
             </div>
             
@@ -173,8 +231,43 @@ const Menu: React.FC<MenuProps> = ({ restaurant, menuItems, menuCategories, cust
             <OrderPaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} cartItems={cartItems} tableNumber={tableNumber} onConfirmPayment={() => { /* Logic to send order to kitchen */ }} onSuccess={handlePaymentSuccess} language={language} />
             <ReservationModal isOpen={isReservationModalOpen} onClose={() => setIsReservationModalOpen(false)} onSubmit={(reservation: Omit<Reservation, 'id' | 'restaurantId'>) => { alert('Reservation submitted!'); setIsReservationModalOpen(false); }} language={language} />
             <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onLogin={handleLogin} onRegister={handleRegister} language={language} />
-            <GameModal isOpen={isGameModalOpen} onClose={() => setIsGameModalOpen(false)} language={language} onGameEnd={handleGameEnd} currentLevel={currentCustomer?.gameProgress.level || 1} />
             <LeaderboardModal isOpen={isLeaderboardModalOpen} onClose={() => setIsLeaderboardModalOpen(false)} language={language} customers={customers} currentCustomerId={currentCustomer?.id || null} />
+
+            {/* --- Game Modals --- */}
+            <GameSelectionModal
+                isOpen={isGameSelectionModalOpen}
+                onClose={() => setIsGameSelectionModalOpen(false)}
+                language={language}
+                onSelectBlinkBites={() => { setIsGameSelectionModalOpen(false); setIsBlinkBitesModalOpen(true); }}
+                onSelectEsmFamilAI={handleStartEsmFamilAI}
+                onSelectEsmFamilHuman={handleStartEsmFamilHuman}
+            />
+             <OnlineUsersModal
+                isOpen={isOnlineUsersModalOpen}
+                onClose={() => setIsOnlineUsersModalOpen(false)}
+                language={language}
+                onlineUsers={onlineUsers}
+                onChallenge={(user, timer) => currentCustomer && onSendInvite(currentCustomer, user, { timer })}
+                currentCustomer={currentCustomer}
+            />
+            {incomingInvite && <InvitationModal
+                invite={incomingInvite}
+                onAccept={() => onRespondToInvite(incomingInvite, 'accepted')}
+                onDecline={() => onRespondToInvite(incomingInvite, 'declined')}
+                language={language}
+            />}
+            <GameModal isOpen={isBlinkBitesModalOpen} onClose={() => setIsBlinkBitesModalOpen(false)} language={language} onGameEnd={handleGameEnd} currentLevel={currentCustomer?.gameProgress.level || 1} />
+            {isEsmFamilModalOpen && esmFamilOpponent && currentCustomer && (
+                <EsmFamilGameModal
+                    isOpen={isEsmFamilModalOpen}
+                    onClose={() => setIsEsmFamilModalOpen(false)}
+                    language={language}
+                    currentUser={currentCustomer}
+                    opponent={esmFamilOpponent}
+                    timerDuration={esmFamilTimer}
+                    onGameEnd={handleGameEnd}
+                />
+            )}
         </div>
     );
 };

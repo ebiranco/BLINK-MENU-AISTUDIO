@@ -223,27 +223,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onLogin }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <FeatureCard
               className="feature-card opacity-0"
-              image="https://images.unsplash.com/photo-1624571409393-23427fb3536d?q=80&w=1932&auto=format&fit=crop"
-              title={t('featureStunningTitle', lang)}
-              description={t('featureStunningDesc', lang)}
+              image="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=2070&auto=format=fit=crop"
+              title={t('featureStudioTitle', lang)}
+              description={t('featureStudioDesc', lang)}
             />
              <FeatureCard 
               className="feature-card opacity-0"
-              image="https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=1974&auto=format=fit=crop"
-              title={t('featureGameTitle', lang)}
-              description={t('featureGameDesc', lang)}
+              image="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=1978&auto=format=fit=crop"
+              title={t('featureSocialGameTitle', lang)}
+              description={t('featureSocialGameDesc', lang)}
             />
              <FeatureCard
               className="feature-card opacity-0"
-              image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format=fit=crop"
-              title={t('featureClubTitle', lang)}
-              description={t('featureClubDesc', lang)}
+              image="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1974&auto=format&fit=crop"
+              title={t('featureLoyaltyTitle', lang)}
+              description={t('featureLoyaltyDesc', lang)}
             />
              <FeatureCard 
               className="feature-card opacity-0"
-              image="https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=2070&auto=format=fit=crop"
-              title={t('featureUpdatesTitle', lang)}
-              description={t('featureUpdatesDesc', lang)}
+              image="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format=fit=crop"
+              title={t('featureDashboardTitle', lang)}
+              description={t('featureDashboardDesc', lang)}
             />
           </div>
         </div>
@@ -278,15 +278,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onLogin }) => {
                      <p className="text-gray-300 mb-6">{t('creditFeaturesDesc', lang)}</p>
                       <div className="space-y-4">
                         <div className="card-glass p-4 rounded-lg">
-                          <p className="font-bold text-white">{t('featureStunningTitle', lang)}</p>
+                          <p className="font-bold text-white">{t('featureStudioTitle', lang)}</p>
                           <p className="text-sm text-gray-300">{t('aiPhotoCredit', lang)}</p>
                         </div>
                         <div className="card-glass p-4 rounded-lg">
-                          <p className="font-bold text-white">{t('featureGameTitle', lang)}</p>
+                          <p className="font-bold text-white">{t('featureSocialGameTitle', lang)}</p>
                           <p className="text-sm text-gray-300">{t('gameCost', lang)}</p>
                         </div>
                          <div className="card-glass p-4 rounded-lg">
-                          <p className="font-bold text-white">{t('featureClubTitle', lang)}</p>
+                          <p className="font-bold text-white">{t('featureLoyaltyTitle', lang)}</p>
                           <p className="text-sm text-gray-300">{t('customerClubCost', lang)}</p>
                         </div>
                       </div>
@@ -330,7 +330,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onLogin }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard
               className="feature-card opacity-0"
-              image="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1974&auto=format&fit=crop"
+              image="https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1974&auto=format=fit=crop"
               title={t('featureSocialMediaTitle', lang)}
               description={t('featureSocialMediaDesc', lang)}
               isComingSoon={true}
