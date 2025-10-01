@@ -1,6 +1,7 @@
 // backend/server.js
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const menuRoutes = require('./routes/menu');
@@ -14,6 +15,10 @@ const app = express();
 // Middleware
 app.use(cors()); // Allow requests from the frontend
 app.use(express.json({ limit: '10mb' })); // Parse JSON bodies, increase limit for base64 images
+
+// Serve static files (AI-generated images/videos) from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 // API Routes
 app.use('/api/menu', menuRoutes);

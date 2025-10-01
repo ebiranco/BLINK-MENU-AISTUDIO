@@ -122,5 +122,4 @@ const CreditPurchaseModal: React.FC<CreditPurchaseModalProps> = ({ isOpen, onClo
         </div>
     );
 };
-// FIX: Added missing default export.
 export default CreditPurchaseModal;

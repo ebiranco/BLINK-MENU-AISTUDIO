@@ -1,215 +1,195 @@
 import React, { useState, useEffect } from 'react';
-import { MenuItem, MenuCategory, Language, TranslatableString } from '../types';
+import { MenuItem, MenuCategory, Language } from '../types';
 import { t } from '../utils/translations';
 import AITextGenerator from './AITextGenerator';
-import AIStudio from './AIStudio'; // Image Generator
-
-const initialFormState: Omit<MenuItem, 'id' | 'restaurantId'> = {
-    name: { en: '', fa: '' },
-    description: { en: '', fa: '' },
-    price: 0,
-    prepTime: 0,
-    imageUrl: '',
-    allergens: [],
-    isFavorite: false,
-    categoryId: '',
-};
-
-type FormState = Omit<MenuItem, 'id' | 'restaurantId'> & { allergensEN?: string; allergensFA?: string };
+import AIImageGenerator from './AIImageGenerator';
 
 interface MenuItemFormProps {
-  item: MenuItem | null;
-  restaurantId: string;
-  onClose: () => void;
-  onSave: (item: Omit<MenuItem, 'id' | 'restaurantId'>) => void;
-  categories: MenuCategory[];
-  language: Language;
+    item: MenuItem | null;
+    restaurantId: string;
+    onClose: () => void;
+    onSave: (item: Omit<MenuItem, 'id' | 'restaurantId'>) => void;
+    categories: MenuCategory[];
+    language: Language;
 }
 
 const MenuItemForm: React.FC<MenuItemFormProps> = ({ item, restaurantId, onClose, onSave, categories, language }) => {
-  const [formData, setFormData] = useState<FormState>(initialFormState);
-  const [isTextStudioOpen, setIsTextStudioOpen] = useState(false);
-  const [isImageStudioOpen, setIsImageStudioOpen] = useState(false);
-  const [aiTarget, setAiTarget] = useState<'name' | 'description' | null>(null);
+    const [nameEn, setNameEn] = useState('');
+    const [nameFa, setNameFa] = useState('');
+    const [descriptionEn, setDescriptionEn] = useState('');
+    const [descriptionFa, setDescriptionFa] = useState('');
+    const [price, setPrice] = useState(0);
+    const [prepTime, setPrepTime] = useState(10);
+    const [imageUrl, setImageUrl] = useState('');
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [categoryId, setCategoryId] = useState('');
+    const [allergensEn, setAllergensEn] = useState('');
+    const [allergensFa, setAllergensFa] = useState('');
 
-  useEffect(() => {
-    if (item) {
-        const allergenStringEN = item.allergens.map(a => a.en).join(', ');
-        const allergenStringFA = item.allergens.map(a => a.fa).join(', ');
-        const { id, restaurantId, ...editableData } = item;
-        setFormData({ ...editableData, allergensEN: allergenStringEN, allergensFA: allergenStringFA });
-    } else {
-      setFormData(initialFormState);
-    }
-  }, [item]);
+    const [isAiTextOpen, setIsAiTextOpen] = useState(false);
+    const [aiTextTarget, setAiTextTarget] = useState<'en' | 'fa' | null>(null);
+    const [isAiImageOpen, setIsAiImageOpen] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
+    useEffect(() => {
+        if (item) {
+            setNameEn(item.name.en);
+            setNameFa(item.name.fa);
+            setDescriptionEn(item.description.en);
+            setDescriptionFa(item.description.fa);
+            setPrice(item.price);
+            setPrepTime(item.prepTime);
+            setImageUrl(item.imageUrl);
+            setIsFavorite(item.isFavorite);
+            setCategoryId(item.categoryId);
+            setAllergensEn(item.allergens.map(a => a.en).join(', '));
+            setAllergensFa(item.allergens.map(a => a.fa).join(', '));
+        } else {
+            // Reset for new item
+            setNameEn('');
+            setNameFa('');
+            setDescriptionEn('');
+            setDescriptionFa('');
+            setPrice(0);
+            setPrepTime(10);
+            setImageUrl('');
+            setIsFavorite(false);
+            setCategoryId(categories.length > 0 ? categories[0].id : '');
+            setAllergensEn('');
+            setAllergensFa('');
+        }
+    }, [item, categories]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const newItemData = {
+            name: { en: nameEn, fa: nameFa },
+            description: { en: descriptionEn, fa: descriptionFa },
+            price: Number(price),
+            prepTime: Number(prepTime),
+            imageUrl,
+            allergens: allergensEn.split(',').map((en, i) => ({
+                en: en.trim(),
+                fa: allergensFa.split(',')[i]?.trim() || en.trim()
+            })).filter(a => a.en),
+            isFavorite,
+            categoryId,
+        };
+        onSave(newItemData);
+    };
+
+    const handleOpenAIText = (lang: 'en' | 'fa') => {
+        setAiTextTarget(lang);
+        setIsAiTextOpen(true);
+    };
+
+    const handleGeneratedText = (text: string) => {
+        if (aiTextTarget === 'en') {
+            setDescriptionEn(text);
+        } else if (aiTextTarget === 'fa') {
+            setDescriptionFa(text);
+        }
+    };
     
-    if (type === 'checkbox') {
-        setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
-    } else {
-        setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
+    const isRtl = language === 'fa';
 
-  const handleTranslatableChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: 'name' | 'description', lang: 'en' | 'fa') => {
-    const { value } = e.target;
-    setFormData(prev => ({
-        ...prev,
-        [field]: { ...prev[field], [lang]: value }
-    }));
-  };
-
-  const handleAllergensChange = (e: React.ChangeEvent<HTMLInputElement>, lang: 'en' | 'fa') => {
-    const { value } = e.target;
-    const key = lang === 'en' ? 'allergensEN' : 'allergensFA';
-    setFormData(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const allergensEN = formData.allergensEN?.split(',').map((s: string) => s.trim()).filter(Boolean) || [];
-    const allergensFA = formData.allergensFA?.split(',').map((s: string) => s.trim()).filter(Boolean) || [];
-
-    const allergens: TranslatableString[] = allergensEN.map((en: string, index: number) => ({
-        en: en,
-        fa: allergensFA[index] || en // fallback to english if persian not provided
-    }));
-
-    const finalData = { ...formData, allergens };
-    delete (finalData as Partial<FormState>).allergensEN;
-    delete (finalData as Partial<FormState>).allergensFA;
-
-
-    onSave(finalData);
-  };
-  
-  const handleAiTextGenerated = (text: string) => {
-    if (aiTarget) {
-      if(aiTarget === 'name'){
-        setFormData(prev => ({...prev, name: { ...prev.name, fa: text }}));
-      } else {
-         setFormData(prev => ({...prev, description: { ...prev.description, fa: text }}));
-      }
-    }
-    setIsTextStudioOpen(false);
-    setAiTarget(null);
-  }
-  
-  const handleAiImageGenerated = (imageUrl: string) => {
-    setFormData(prev => ({ ...prev, imageUrl }));
-    setIsImageStudioOpen(false);
-  };
-
-  return (
-    <>
-    <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[60] p-4" onClick={onClose} dir={language === 'fa' ? 'rtl' : 'ltr'}>
-      <div 
-        className="bg-white/90 backdrop-blur-lg border border-white/20 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col text-gray-800"
-        onClick={e => e.stopPropagation()}
-      >
-        <form onSubmit={handleSubmit} className="flex flex-col flex-grow">
-          <div className="p-6 border-b border-black/10">
-            <h2 className="text-2xl font-bold">{item ? t('editItem', language) : t('addNewItem', language)}</h2>
-          </div>
-          <div className="p-6 space-y-4 overflow-y-auto">
-            {/* Name */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('persianName', language)}</label>
-                <div className="flex items-center gap-2">
-                    <input type="text" value={formData.name.fa} onChange={(e) => handleTranslatableChange(e, 'name', 'fa')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required />
-                    <button type="button" onClick={() => { setAiTarget('name'); setIsTextStudioOpen(true); }} className="p-2 bg-purple-100 text-purple-600 rounded-md hover:bg-purple-200 transition-colors">AI</button>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('englishName', language)}</label>
-                <input type="text" value={formData.name.en} onChange={(e) => handleTranslatableChange(e, 'name', 'en')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required />
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div>
-                 <label className="block text-sm font-medium text-gray-700">{t('persianDescription', language)}</label>
-                 <div className="flex items-center gap-2">
-                    <textarea value={formData.description.fa} onChange={(e) => handleTranslatableChange(e, 'description', 'fa')} rows={3} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required />
-                    <button type="button" onClick={() => { setAiTarget('description'); setIsTextStudioOpen(true); }} className="p-2 bg-purple-100 text-purple-600 rounded-md hover:bg-purple-200 transition-colors">AI</button>
-                 </div>
-               </div>
-               <div>
-                 <label className="block text-sm font-medium text-gray-700">{t('englishDescription', language)}</label>
-                 <textarea value={formData.description.en} onChange={(e) => handleTranslatableChange(e, 'description', 'en')} rows={3} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required />
-               </div>
-            </div>
-
-            {/* Price, Category, Prep Time */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('price', language)}</label>
-                <input type="number" name="price" value={formData.price} onChange={handleChange} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('category', language)}</label>
-                <select name="categoryId" value={formData.categoryId} onChange={handleChange} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required>
-                  <option value="">Select a category</option>
-                  {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name[language]}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('preparationTime', language)}</label>
-                <input type="number" name="prepTime" value={formData.prepTime} onChange={handleChange} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required />
-              </div>
-            </div>
-            
-             {/* Image URL & Favorite */}
-            <div>
-                <label className="block text-sm font-medium text-gray-700">{t('imageUrl', language)}</label>
-                <div className="flex items-center gap-2">
-                    <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" required />
-                    <button type="button" onClick={() => alert("Please use the AI Studio tab in the main dashboard for advanced image generation.")} className="p-2 bg-purple-100 text-purple-600 rounded-md flex-shrink-0 hover:bg-purple-200 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>
-                    </button>
+    return (
+        <>
+            <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4" onClick={onClose}>
+                <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full" onClick={(e) => e.stopPropagation()} dir={isRtl ? 'rtl' : 'ltr'}>
+                    <form onSubmit={handleSubmit}>
+                        <div className="p-6 border-b">
+                            <h2 className="text-2xl font-bold text-gray-800">{item ? t('editItem', language) : t('addNewItem', language)}</h2>
+                        </div>
+                        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">{t('englishName', language)}</label>
+                                    <input type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} className="form-input" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">{t('persianName', language)}</label>
+                                    <input type="text" value={nameFa} onChange={e => setNameFa(e.target.value)} className="form-input" required dir="rtl" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">{t('englishDescription', language)}</label>
+                                <div className="relative">
+                                    <textarea value={descriptionEn} onChange={e => setDescriptionEn(e.target.value)} rows={3} className="form-input pr-24" />
+                                    <button type="button" onClick={() => handleOpenAIText('en')} className={`ai-button ${isRtl ? 'left-2' : 'right-2'}`}>{t('generateWithAI', language)}</button>
+                                </div>
+                            </div>
+                             <div>
+                                <label className="block text-sm font-medium text-gray-700">{t('persianDescription', language)}</label>
+                                 <div className="relative">
+                                    <textarea value={descriptionFa} onChange={e => setDescriptionFa(e.target.value)} rows={3} className="form-input pl-24" dir="rtl" />
+                                    <button type="button" onClick={() => handleOpenAIText('fa')} className={`ai-button ${isRtl ? 'left-2' : 'right-2'}`}>{t('generateWithAI', language)}</button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                 <div>
+                                    <label className="block text-sm font-medium text-gray-700">{t('price', language)}</label>
+                                    <input type="number" value={price} onChange={e => setPrice(Number(e.target.value))} className="form-input" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">{t('preparationTime', language)}</label>
+                                    <input type="number" value={prepTime} onChange={e => setPrepTime(Number(e.target.value))} className="form-input" required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">{t('category', language)}</label>
+                                    <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="form-input" required>
+                                        <option value="" disabled>Select a category</option>
+                                        {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name[language]}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                             <div>
+                                <label className="block text-sm font-medium text-gray-700">{t('imageUrl', language)}</label>
+                                <div className="flex gap-2">
+                                    <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="form-input" />
+                                    <button type="button" onClick={() => setIsAiImageOpen(true)} className="flex-shrink-0 bg-blue-500 text-white px-3 py-2 rounded-md text-sm hover:bg-blue-600">{t('generateWithAI', language)}</button>
+                                </div>
+                                {imageUrl && <img src={imageUrl} alt="preview" className="mt-2 h-24 w-24 object-cover rounded-md"/>}
+                            </div>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">{t('englishAllergens', language)}</label>
+                                    <input type="text" value={allergensEn} onChange={e => setAllergensEn(e.target.value)} className="form-input" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">{t('persianAllergens', language)}</label>
+                                    <input type="text" value={allergensFa} onChange={e => setAllergensFa(e.target.value)} className="form-input" dir="rtl" />
+                                </div>
+                            </div>
+                             <div className="flex items-center">
+                                <input type="checkbox" id="isFavorite" checked={isFavorite} onChange={e => setIsFavorite(e.target.checked)} className="h-4 w-4 text-purple-600 border-gray-300 rounded" />
+                                <label htmlFor="isFavorite" className={`block text-sm text-gray-900 ${isRtl ? 'mr-2' : 'ml-2'}`}>{t('isFavorite', language)}</label>
+                            </div>
+                        </div>
+                        <div className="p-4 bg-gray-50 flex justify-end gap-3">
+                            <button type="button" onClick={onClose} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg font-semibold hover:bg-gray-300">{t('cancel', language)}</button>
+                            <button type="submit" className="bg-purple-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-purple-700">{t('saveChanges', language)}</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <div className="flex items-center">
-                <input type="checkbox" id="isFavorite" name="isFavorite" checked={formData.isFavorite} onChange={handleChange} className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                <label htmlFor="isFavorite" className="mx-2 block text-sm text-gray-900">{t('isFavorite', language)}</label>
-            </div>
-            
-            {/* Allergens */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('persianAllergens', language)}</label>
-                <input type="text" value={formData.allergensFA || ''} onChange={(e) => handleAllergensChange(e, 'fa')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">{t('englishAllergens', language)}</label>
-                <input type="text" value={formData.allergensEN || ''} onChange={(e) => handleAllergensChange(e, 'en')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" />
-              </div>
-            </div>
-
-          </div>
-          <div className="p-4 bg-black/5 flex justify-end gap-3 mt-auto">
-            <button type="button" onClick={onClose} className="bg-gray-200 text-gray-800 px-5 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
-              {t('cancel', language)}
-            </button>
-            <button type="submit" className="btn-animated-gradient bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-lg font-semibold hover:opacity-90">
-              {t('saveChanges', language)}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-    {isTextStudioOpen && <AITextGenerator 
-      onClose={() => setIsTextStudioOpen(false)} 
-      language={language}
-      onGenerate={handleAiTextGenerated}
-      context={aiTarget === 'name' ? `Generate a creative Persian name for a food item. English name is: ${formData.name.en}` : `Generate an appetizing Persian description for a food item. The item is ${formData.name.en}. The English description is: ${formData.description.en}`}
-    />}
-    </>
-  );
+            {isAiTextOpen && (
+                <AITextGenerator 
+                    onClose={() => setIsAiTextOpen(false)} 
+                    language={language}
+                    onGenerate={handleGeneratedText}
+                    context={`Generate a short, appetizing menu description for ${nameEn || nameFa}${aiTextTarget === 'fa' ? ' in Persian' : ''}.`}
+                />
+            )}
+            {isAiImageOpen && (
+                 <AIImageGenerator 
+                    onClose={() => setIsAiImageOpen(false)} 
+                    language={language}
+                    onGenerate={setImageUrl}
+                    context={`A professional, cinematic food photograph of ${nameEn || nameFa} on a restaurant table.`}
+                />
+            )}
+        </>
+    );
 };
 
 export default MenuItemForm;

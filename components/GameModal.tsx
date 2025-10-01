@@ -39,7 +39,6 @@ const GameModal: React.FC<GameModalProps> = ({ isOpen, onClose, language, onGame
     const [playerX, setPlayerX] = useState(GAME_WIDTH / 2);
     const [showLevelUp, setShowLevelUp] = useState(false);
     
-    // FIX: Initialize useRef with null to match its type for browser environments.
     const gameAreaRef = useRef<HTMLDivElement>(null);
     const animationFrameId = useRef<number | null>(null);
     // FIX: setInterval returns a number in browsers, not a NodeJS.Timeout.

@@ -23,10 +23,11 @@ const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({ onClose, language, 
     setGeneratedImage(null);
 
     try {
-      if (!window.APP_CONFIG?.API_KEY) {
-        throw new Error("API_KEY is not configured. Please run the setup script.");
+      // FIX: API Key must be read from process.env as per guidelines
+      if (!process.env.API_KEY) {
+        throw new Error("API_KEY is not configured. Please check your environment variables.");
       }
-      const ai = new GoogleGenAI({ apiKey: window.APP_CONFIG.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const response = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
