@@ -1,7 +1,8 @@
 // backend/routes/orders.js
-const express = require('express');
+import express from 'express';
+import db from '../db.js';
+
 const router = express.Router();
-const db = require('../db');
 
 // GET all orders
 router.get('/', async (req, res) => {
@@ -110,4 +111,4 @@ router.put('/:id/status', async (req, res) => {
 });
 
 
-module.exports = router;
+export default router;

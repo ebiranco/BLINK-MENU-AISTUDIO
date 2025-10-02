@@ -1,7 +1,8 @@
 // backend/routes/customers.js
-const express = require('express');
+import express from 'express';
+import db from '../db.js';
+
 const router = express.Router();
-const db = require('../db');
 
 // Helper to transform DB result to frontend format
 const transformCustomer = (customer) => ({
@@ -99,4 +100,4 @@ router.put('/:id/game', async (req, res) => {
 });
 
 
-module.exports = router;
+export default router;

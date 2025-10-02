@@ -1,15 +1,32 @@
 {
   "name": "blink-digital-menu",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Full-stack setup for BLINK Digital Menu",
   "private": true,
+  "type": "module",
   "scripts": {
     "prepare": "node generate-config.js",
-    "dev": "npm --prefix backend run dev"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start:backend": "npm --prefix backend start",
+    "dev:backend": "npm --prefix backend run dev"
   },
-  "author": "",
+  "author": "Blink Team",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5"
   }
 }

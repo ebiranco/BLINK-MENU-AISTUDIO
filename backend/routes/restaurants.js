@@ -1,8 +1,8 @@
 // backend/routes/restaurants.js
-const express = require('express');
-const router = express.Router();
-const db = require('../db');
+import express from 'express';
+import db from '../db.js';
 
+const router = express.Router();
 
 const transformRestaurant = (dbRow) => ({
     id: dbRow.id,
@@ -96,4 +96,4 @@ router.put('/:id/features', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

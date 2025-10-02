@@ -1,7 +1,8 @@
 // backend/routes/media.js
-const express = require('express');
+import express from 'express';
+import { GoogleGenAI, Modality, Type } from '@google/genai';
+
 const router = express.Router();
-const { GoogleGenAI, Modality, Type } = require('@google/genai');
 
 // Ensure API_KEY is loaded from the root .env file via the main server entry point
 if (!process.env.API_KEY) {
@@ -134,4 +135,4 @@ router.post('/esm-famil-ai', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

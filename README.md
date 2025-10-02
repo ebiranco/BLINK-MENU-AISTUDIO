@@ -1,496 +1,234 @@
-# BLINK Digital Menu
+
+# BLINK Digital Menu - Deployment Guide (EN/FA)
+
+![BLINK Hero](https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200)
 
 ---
 
-## English
-
-### 🚀 Project Overview
+### 🚀 Project Overview (English)
 
 BLINK is a modern, full-stack digital menu platform designed for restaurants. It goes beyond a simple QR code, offering a visually stunning, interactive, and gamified experience for customers. For restaurant owners, it provides a powerful management dashboard equipped with an AI Creative Hub to generate professional marketing content, manage orders in real-time, and build a loyal customer base.
 
-### ✨ Features & Capabilities
-
-#### For Customers:
-- **Interactive Bilingual Menu:** Seamlessly switch between English and Persian.
-- **Dual Viewing Modes:** Choose between a cinematic "Immersive" view or a classic "Grid" layout.
-- **Detailed Item Information:** View high-quality images, descriptions, prices, preparation times, and allergen information.
-- **Seamless Ordering:** Add items to a shopping cart, specify a table number, and proceed to a simulated payment process.
-- **Gamification & Social Hub:**
-    - **Blink Bites:** A fun, single-player mini-game to play while waiting.
-    - **Esm Famil:** Challenge other online users to a real-time, two-player game of "Esm Famil".
-    - **Leaderboard:** Compete for the high score and see your rank among other players.
-    - **User Profiles:** Register with a phone number to track game scores and progress.
-- **Table Reservations:** A simple form to book a table in advance.
-
-#### For Restaurant Owners (Dashboard):
-- **Real-time Order Management:** A Kanban board view (`New`, `In Progress`, `Completed`) to track live orders.
-- **Full Menu Control:** Easily add, edit, or delete menu items and categories.
-- **🤖 AI Creative Hub:**
-    - **AI Photography Studio:** Upload a simple photo of a dish and transform it into professional, high-quality images using various style presets and detailed controls (angle, lighting, background).
-    - **AI Video Studio:** Generate short, engaging video ads for social media from a single product photo.
-- **Customer Club:** View a list of registered customers, their contact information, and their game progress statistics.
-- **Upgrades & Credits:** Use a credit system to activate advanced features like the Game Center and Customer Club. Purchase more credits as needed.
-- **Financials:** View a history of transactions and configure payment gateway settings.
-
-#### For Platform Admins:
-- **SaaS Management Panel:** A separate dashboard to oversee the entire platform.
-- **Restaurant Management:** View all registered restaurants, their status, and activate or deactivate them.
-- **Platform Analytics:** Get a high-level overview of total revenue, orders, and active restaurants.
-
-### 💻 Technology Stack
-
-- **Frontend:** React, TypeScript, Tailwind CSS. A dynamic single-page application (SPA) that provides a fast and responsive user interface.
-- **Backend:** Node.js, Express.js. A robust REST API server that handles business logic, database interactions, and secure communication with the Gemini API.
-- **Database:** PostgreSQL. A powerful, open-source object-relational database system used to store all persistent data, including restaurant info, menus, customers, and orders.
-- **AI Integration:** Google Gemini API
-  - **`gemini-2.5-flash-image-preview`**: For AI-powered image editing and re-imagining in the Photography Studio.
-  - **`veo-2.0-generate-001`**: For AI video generation.
-  - **`gemini-2.5-flash`**: For advanced text generation (menu descriptions) and structured JSON output (AI game opponent).
-- **Deployment:** Nginx (Web Server & Reverse Proxy), PM2 (Process Manager), Certbot (SSL).
+This document provides a comprehensive guide for deploying the BLINK application on a production server running **Ubuntu 22.04**.
 
 ---
 
-## ⚙️ Deployment Guide (Ubuntu 22.04)
+### 🚀 معرفی پروژه (فارسی)
 
-This guide provides two methods to deploy the application on a fresh Ubuntu 22.04 server.
+BLINK یک پلتفرم منوی دیجیتال مدرن و فول-استک است که برای رستوران‌ها طراحی شده است. این پلتفرم فراتر از یک QR کد ساده عمل کرده و تجربه‌ای جذاب، تعاملی و مبتنی بر بازی برای مشتریان فراهم می‌کند. برای صاحبان رستوران، BLINK یک داشبورد مدیریتی قدرتمند با "مرکز خلاقیت هوش مصنوعی" ارائه می‌دهد که امکان تولید محتوای بازاریابی حرفه‌ای، مدیریت آنی سفارشات و ایجاد باشگاه مشتریان وفادار را فراهم می‌سازد.
 
-#### Prerequisites
-- A server running Ubuntu 22.04.
-- A registered domain name (e.g., `your_domain.com`).
-- A DNS **A record** pointing your domain to your server's public IP address.
+این راهنما دستورالعمل‌های جامعی برای استقرار اپلیکیشن BLINK روی یک سرور پروداکشن با سیستم‌عامل **Ubuntu 22.04** ارائه می‌دهد.
 
 ---
 
-### Method 1: Automated Deployment (🚀 Recommended)
+### ✅ Prerequisites (English)
 
-This one-line command runs a script that handles everything: installing prerequisites, configuring the database, setting up the web server, and securing your site with a free SSL certificate.
+Before you begin, ensure your server has the following software installed. The provided `deploy.sh` script will check for these, but it will not install them for you.
 
-#### 🏁 Deployment Command
-Connect to your server via SSH, clone your project, navigate into the directory, and run the `deploy.sh` script. Replace `your_domain.com` with your actual domain.
+-   **Node.js:** Version 18.x or higher.
+-   **npm:** Node Package Manager (usually comes with Node.js).
+-   **PostgreSQL:** The database for storing all application data.
+-   **Nginx:** The web server and reverse proxy.
+-   **PM2:** A process manager for Node.js applications (`sudo npm install pm2 -g`).
+-   **Git:** For cloning the repository.
+-   **Certbot:** For obtaining a free SSL certificate (`sudo apt install certbot python3-certbot-nginx`).
+
+You will also need:
+-   A registered domain name (e.g., `your-domain.com`).
+-   DNS records pointing your domain to the server's IP address.
+
+---
+
+### ✅ پیش‌نیازها (فارسی)
+
+قبل از شروع، اطمینان حاصل کنید که نرم‌افزارهای زیر روی سرور شما نصب شده باشند. اسکریپت `deploy.sh` وجود این موارد را بررسی می‌کند اما آن‌ها را برای شما نصب نخواهد کرد.
+
+-   **Node.js:** نسخه ۱۸.x یا بالاتر.
+-   **npm:** مدیر بسته Node (معمولاً همراه با Node.js نصب می‌شود).
+-   **PostgreSQL:** پایگاه داده برای ذخیره‌سازی اطلاعات اپلیکیشن.
+-   **Nginx:** وب‌سرور و پراکسی معکوس.
+-   **PM2:** مدیر فرآیند برای اپلیکیشن‌های Node.js (با دستور `sudo npm install pm2 -g`).
+-   **Git:** برای کلون کردن ریپازیتوری.
+-   **Certbot:** برای دریافت گواهی SSL رایگان (با دستور `sudo apt install certbot python3-certbot-nginx`).
+
+همچنین شما به موارد زیر نیاز خواهید داشت:
+-   یک نام دامنه ثبت‌شده (مانند `your-domain.com`).
+-   رکوردهای DNS که دامنه شما را به آدرس IP سرور متصل می‌کنند.
+
+---
+
+### ⚙️ Step-by-Step Deployment Guide (English)
+
+This guide uses the automated `deploy.sh` script for a streamlined setup.
+
+#### Step 1: Clone the Repository
+
+Connect to your server via SSH and clone the project repository into a suitable directory. We recommend `/var/www/`.
 
 ```bash
-# First, clone your project from its repository
-git clone https://github.com/your-username/blink-menu.git
-cd blink-menu
-
-# Make the script executable
-chmod +x deploy.sh
-
-# Then, run the deployment script
-sudo ./deploy.sh your_domain.com
+sudo git clone https://github.com/your-username/blink-menu.git /var/www/blink-menu
+cd /var/www/blink-menu
 ```
 
-The script will guide you, asking for a database password and an email for SSL registration.
+#### Step 2: Run the Deployment Script
 
-#### ✅ Final Configuration
-After the script finishes, you must manually set your API key.
+The `deploy.sh` script will guide you through the configuration process. It will ask for your domain, email, a database password, and your API key.
 
-1.  **Edit the main project `.env` file:**
-    ```bash
-    sudo nano /var/www/blink-menu/.env
-    ```
-2.  **Add your Gemini API Key:**
-    ```
-    API_KEY="YOUR_ACTUAL_GEMINI_API_KEY"
-    ```
-3.  **Apply Configuration and Restart:**
-    ```bash
-    cd /var/www/blink-menu
-    npm run prepare
-    pm2 restart blink-backend
-    ```
-
-Your application is now live and secure at **`https://your_domain.com`**.
-
----
-
-### Method 2: Manual Step-by-Step Deployment
-
-This guide provides detailed, step-by-step instructions for manual deployment.
-
-#### Step 1: Server Setup & Cloning Project
-
-1.  Connect to your server via SSH.
-2.  Update your server's package list and install Git:
-    ```bash
-    sudo apt update && sudo apt upgrade -y
-    sudo apt install -y git
-    ```
-3.  Clone the project into a standard web directory:
-    ```bash
-    sudo git clone https://github.com/your-username/blink-menu.git /var/www/blink-menu
-    cd /var/www/blink-menu
-    ```
-
-#### Step 2: Install Dependencies (Node.js, Nginx, PostgreSQL)
-
-1.  Install Node.js (we recommend version 18.x):
-    ```bash
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt install -y nodejs
-    ```
-2.  Install Nginx web server and PostgreSQL database:
-    ```bash
-    sudo apt install -y nginx postgresql postgresql-contrib
-    ```
-
-#### Step 3: Configure PostgreSQL Database
-
-1.  Start and enable PostgreSQL:
-    ```bash
-    sudo systemctl start postgresql
-    sudo systemctl enable postgresql
-    ```
-2.  Log in to the PostgreSQL prompt:
-    ```bash
-    sudo -u postgres psql
-    ```
-3.  Inside the `psql` prompt, run the following commands. **Replace `your_secure_password` with a strong password.**
-    ```sql
-    CREATE DATABASE blinkdb;
-    CREATE USER blinkuser WITH PASSWORD 'your_secure_password';
-    GRANT ALL PRIVILEGES ON DATABASE blinkdb TO blinkuser;
-    \q
-    ```
-4.  Run the `init.sql` script to create the database schema and add mock data:
-    ```bash
-    sudo -u blinkuser psql -d blinkdb -f /var/www/blink-menu/init.sql
-    ```
-
-#### Step 4: Install Project Dependencies
-
-1.  Install dependencies for the root and the backend:
-    ```bash
-    sudo npm install
-    sudo npm install --prefix backend
-    ```
-
-#### Step 5: Configure Environment Variables
-
-1.  Create and edit the `.env` file for the backend. This file stores the database connection string.
-    ```bash
-    sudo nano /var/www/blink-menu/backend/.env
-    ```
-    Add the following line, replacing `your_secure_password` with the password you created in Step 3:
-    ```
-    DATABASE_URL="postgresql://blinkuser:your_secure_password@localhost:5432/blinkdb"
-    ```
-2.  Create and edit the main `.env` file for the frontend. This file stores the Gemini API key.
-    ```bash
-    sudo nano /var/www/blink-menu/.env
-    ```
-    Add your API key:
-    ```
-    API_KEY="YOUR_ACTUAL_GEMINI_API_KEY"
-    ```
-3.  Generate the frontend configuration file from the `.env` file:
-    ```bash
-    sudo npm run prepare
-    ```
-4.  Set correct permissions for the project directory:
-    ```bash
-    sudo chown -R www-data:www-data /var/www/blink-menu
-    ```
-
-#### Step 6: Start Backend with PM2
-
-1.  Install PM2, a process manager for Node.js:
-    ```bash
-    sudo npm install pm2 -g
-    ```
-2.  Start the backend server with PM2:
-    ```bash
-    cd /var/www/blink-menu/backend
-    sudo pm2 start server.js --name blink-backend
-    ```
-3.  Configure PM2 to start on server reboot:
-    ```bash
-    sudo pm2 startup systemd
-    # Follow the on-screen instructions (copy/paste and run the command it provides)
-    sudo pm2 save
-    ```
-
-#### Step 7: Configure Nginx as a Reverse Proxy
-
-1.  Create a new Nginx configuration file for your site. Replace `your_domain.com` with your actual domain.
-    ```bash
-    sudo nano /etc/nginx/sites-available/your_domain.com
-    ```
-2.  Paste the following configuration into the file. **Remember to replace `your_domain.com` in both places.**
-    ```nginx
-    server {
-        listen 80;
-        server_name your_domain.com;
-        root /var/www/blink-menu;
-
-        index index.html;
-
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-
-        location /api/ {
-            proxy_pass http://localhost:5000;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-        }
-    }
-    ```
-3.  Enable the site by creating a symbolic link:
-    ```bash
-    sudo ln -s /etc/nginx/sites-available/your_domain.com /etc/nginx/sites-enabled/
-    ```
-4.  Test your Nginx configuration for errors:
-    ```bash
-    sudo nginx -t
-    ```
-5.  If the test is successful, restart Nginx to apply the changes:
-    ```bash
-    sudo systemctl restart nginx
-    ```
-
-#### Step 8: Obtain SSL Certificate with Certbot
-
-1.  Install Certbot, the tool for getting Let's Encrypt SSL certificates:
-    ```bash
-    sudo apt install -y certbot python3-certbot-nginx
-    ```
-2.  Run Certbot to automatically obtain and install the SSL certificate. Replace `your_domain.com` with your domain and provide your email.
-    ```bash
-    sudo certbot --nginx -d your_domain.com --email your_email@example.com --agree-tos -n --redirect
-    ```
-    *   `--redirect` automatically redirects all HTTP traffic to HTTPS.
-    *   `-n` runs it non-interactively.
-
-Certbot will automatically renew your certificate before it expires.
-
-That's it! Your application is now live and secure at **`https://your_domain.com`**.
-
----
----
-
-## فارسی (Persian)
-
-### 🚀 معرفی پروژه
-
-BLINK یک پلتفرم منوی دیجیتال مدرن و Full-Stack است که برای رستوران‌ها طراحی شده است. این پلتفرم فراتر از یک QR کد ساده عمل کرده و یک تجربه بصری خیره‌کننده، تعاملی و مبتنی بر بازی (Gamified) برای مشتریان فراهم می‌کند.
-
-### ⚙️ راهنمای استقرار (Ubuntu 22.04)
-
-این راهنما دو روش برای استقرار اپلیکیشن بر روی یک سرور اوبونتو ۲۲.۰۴ ارائه می‌دهد.
-
-#### پیش‌نیازها
-- یک سرور با سیستم‌عامل Ubuntu 22.04.
-- یک نام دامنه ثبت شده (مثال: `your_domain.com`).
-- یک رکورد DNS از نوع **A** که دامنه شما را به IP عمومی سرور متصل می‌کند.
-
----
-
-### روش اول: استقرار خودکار (🚀 پیشنهادی)
-
-این دستور یک اسکریپت را اجرا می‌کند که همه کارها را انجام می‌دهد: نصب پیش‌نیازها، پیکربندی دیتابیس، راه‌اندازی وب‌سرور و امن‌سازی سایت با گواهی SSL رایگان.
-
-#### 🏁 دستور استقرار
-از طریق SSH به سرور متصل شوید، پروژه را کلون کرده، وارد پوشه آن شوید و اسکریپت `deploy.sh` را اجرا کنید. `your_domain.com` را با دامنه واقعی خود جایگزین کنید.
+Make the script executable and run it:
 
 ```bash
-# پروژه را از ریپازیتوری خود کلون کنید
-git clone https://github.com/your-username/blink-menu.git
-cd blink-menu
+# This only needs to be done once
+sudo chmod +x deploy.sh
 
-# اسکریپت را قابل اجرا کنید
-chmod +x deploy.sh
+# Run the deployment script
+sudo ./deploy.sh
+```
+
+The script will perform the following actions:
+1.  Check for required software.
+2.  Prompt you for necessary configuration details.
+3.  Create the `.env` files for the frontend and backend.
+4.  Install all `npm` dependencies.
+5.  Build the static frontend assets.
+6.  Start the backend server with PM2 and configure it to run on startup.
+7.  Generate a custom Nginx configuration file for your domain.
+
+#### Step 3: Configure DNS
+
+Before you can get an SSL certificate, your domain must point to your server's IP address. Go to your DNS provider (e.g., Cloudflare, GoDaddy) and create the following **A records**:
+
+| Type | Name        | Content (Value)          |
+| :--- | :---------- | :----------------------- |
+| A    | `@`         | `YOUR_SERVER_IP_ADDRESS` |
+| A    | `www`       | `YOUR_SERVER_IP_ADDRESS` |
+
+*Note: DNS changes can take some time to propagate.*
+
+#### Step 4: Finalize Server Configuration
+
+After the `deploy.sh` script finishes, it will output a final set of commands you need to run. These commands will:
+1.  Enable your new Nginx site.
+2.  Test the Nginx configuration.
+3.  Restart Nginx to apply the changes.
+4.  Run Certbot to secure your site with a free SSL certificate.
+
+Copy and paste these commands into your terminal to complete the setup.
+
+**Congratulations! Your BLINK Digital Menu is now live and secure at `https://your-domain.com`.**
+
+---
+
+### ⚙️ راهنمای گام‌به‌گام استقرار (فارسی)
+
+این راهنما از اسکریپت خودکار `deploy.sh` برای یک راه‌اندازی سریع و ساده استفاده می‌کند.
+
+#### مرحله ۱: کلون کردن ریپازیتوری
+
+از طریق SSH به سرور خود متصل شوید و ریپازیتوری پروژه را در یک مسیر مناسب کلون کنید. ما مسیر `/var/www/` را پیشنهاد می‌کنیم.
+
+```bash
+sudo git clone https://github.com/your-username/blink-menu.git /var/www/blink-menu
+cd /var/www/blink-menu
+```
+
+#### مرحله ۲: اجرای اسکریپت استقرار
+
+اسکریپت `deploy.sh` شما را در فرآیند پیکربندی راهنمایی خواهد کرد. این اسکریپت اطلاعاتی مانند دامنه، ایمیل، رمز عبور پایگاه داده و کلید API شما را درخواست می‌کند.
+
+اسکریپت را قابل اجرا کرده و آن را اجرا کنید:
+
+```bash
+# این دستور فقط یک بار نیاز به اجرا دارد
+sudo chmod +x deploy.sh
 
 # اسکریپت استقرار را اجرا کنید
-sudo ./deploy.sh your_domain.com
+sudo ./deploy.sh
 ```
-اسکریپت از شما یک رمز عبور برای دیتابیس و یک ایمیل برای گواهی SSL خواهد خواست.
 
-#### ✅ تنظیمات نهایی
-پس از اتمام اسکریپت، فقط کلید API خود را به صورت دستی تنظیم کنید.
+این اسکریپت اقدامات زیر را انجام خواهد داد:
+۱. بررسی نرم‌افزارهای مورد نیاز.
+۲. درخواست اطلاعات لازم برای پیکربندی.
+۳. ایجاد فایل‌های `.env` برای فرانت‌اند و بک‌اند.
+۴. نصب تمام وابستگی‌های `npm`.
+۵. ساخت فایل‌های استاتیک فرانت‌اند.
+۶. راه‌اندازی سرور بک‌اند با PM2 و تنظیم آن برای اجرا در هنگام بوت شدن سرور.
+۷. ایجاد یک فایل پیکربندی Nginx سفارشی برای دامنه شما.
 
-1.  **فایل `.env` اصلی را ویرایش کنید:**
-    ```bash
-    sudo nano /var/www/blink-menu/.env
-    ```
-2.  **کلید Gemini API خود را اضافه کنید:**
-    ```
-    API_KEY="YOUR_ACTUAL_GEMINI_API_KEY"
-    ```
-3.  **اعمال تنظیمات و راه‌اندازی مجدد:**
-    ```bash
-    cd /var/www/blink-menu
-    npm run prepare
-    pm2 restart blink-backend
-    ```
+#### مرحله ۳: پیکربندی DNS
 
-اپلیکیشن شما اکنون بر روی آدرس **`https://your_domain.com`** فعال است.
+قبل از اینکه بتوانید گواهی SSL دریافت کنید، دامنه شما باید به آدرس IP سرور اشاره کند. به پنل ارائه‌دهنده DNS خود (مانند Cloudflare) بروید و رکوردهای **A** زیر را ایجاد کنید:
+
+| نوع  | نام         | محتوا (مقدار)            |
+| :--- | :---------- | :----------------------- |
+| A    | `@`         | `YOUR_SERVER_IP_ADDRESS` |
+| A    | `www`       | `YOUR_SERVER_IP_ADDRESS` |
+
+*توجه: اعمال تغییرات DNS ممکن است مدتی طول بکشد.*
+
+#### مرحله ۴: نهایی‌سازی پیکربندی سرور
+
+پس از اتمام کار اسکریپت `deploy.sh`، مجموعه‌ای از دستورات نهایی به شما نمایش داده می‌شود که باید اجرا کنید. این دستورات:
+۱. سایت جدید Nginx شما را فعال می‌کنند.
+۲. پیکربندی Nginx را آزمایش می‌کنند.
+۳. Nginx را برای اعمال تغییرات ری‌استارت می‌کنند.
+۴. Certbot را برای امن‌سازی سایت شما با گواهی SSL رایگان اجرا می‌کنند.
+
+این دستورات را کپی و در ترمینال خود اجرا کنید تا راه‌اندازی تکمیل شود.
+
+**تبریک! منوی دیجیتال BLINK شما اکنون روی دامنه `https://your-domain.com` فعال و امن است.**
 
 ---
 
-### روش دوم: استقرار دستی قدم‌به‌قدم
+### 🔧 Environment Configuration Details (English)
 
-این راهنما شامل دستورالعمل‌های دقیق برای استقرار دستی است.
+The deployment script creates two `.env` files from your input. It's useful to know what they contain.
 
-#### مرحله ۱: راه‌اندازی سرور و کلون کردن پروژه
+| Variable       | Location        | Description                                                                                             |
+| :------------- | :-------------- | :------------------------------------------------------------------------------------------------------ |
+| `API_KEY`      | `.` & `backend` | **Required.** Your API key for the Google Gemini AI models. Get this from [Google AI Studio](https://aistudio.google.com/app/apikey). |
+| `DATABASE_URL` | `backend`       | **Required.** The full connection string for your PostgreSQL database. The script generates this for you. |
+| `PORT`         | `backend`       | *Optional.* The port for the backend server. Defaults to `5000`.                                        |
 
-1.  از طریق SSH به سرور خود متصل شوید.
-2.  لیست پکیج‌های سرور را به‌روز کرده و Git را نصب کنید:
-    ```bash
-    sudo apt update && sudo apt upgrade -y
-    sudo apt install -y git
-    ```
-3.  پروژه را در یک مسیر استاندارد وب کلون کنید:
-    ```bash
-    sudo git clone https://github.com/your-username/blink-menu.git /var/www/blink-menu
-    cd /var/www/blink-menu
-    ```
+---
 
-#### مرحله ۲: نصب نیازمندی‌ها (Node.js, Nginx, PostgreSQL)
+### 🔧 جزئیات پیکربندی محیط (فارسی)
 
-1.  Node.js (نسخه ۱۸.x) را نصب کنید:
-    ```bash
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt install -y nodejs
-    ```
-2.  وب سرور Nginx و دیتابیس PostgreSQL را نصب کنید:
-    ```bash
-    sudo apt install -y nginx postgresql postgresql-contrib
-    ```
+اسکریپت استقرار دو فایل `.env` را بر اساس ورودی شما ایجاد می‌کند. بهتر است با محتوای این فایل‌ها آشنا باشید.
 
-#### مرحله ۳: پیکربندی دیتابیس PostgreSQL
+| متغیر          | مسیر             | توضیحات                                                                                                       |
+| :------------- | :-------------- | :------------------------------------------------------------------------------------------------------------- |
+| `API_KEY`      | `.` و `backend` | **ضروری.** کلید API شما برای مدل‌های هوش مصنوعی Google Gemini. این کلید را از [Google AI Studio](https://aistudio.google.com/app/apikey) دریافت کنید. |
+| `DATABASE_URL` | `backend`       | **ضروری.** رشته اتصال کامل پایگاه داده PostgreSQL. این مقدار توسط اسکریپت برای شما ایجاد می‌شود.                |
+| `PORT`         | `backend`       | *اختیاری.* پورتی که سرور بک‌اند روی آن اجرا می‌شود. مقدار پیش‌فرض `5000` است.                                       |
 
-1.  PostgreSQL را فعال و اجرا کنید:
-    ```bash
-    sudo systemctl start postgresql
-    sudo systemctl enable postgresql
-    ```
-2.  وارد محیط خط فرمان PostgreSQL شوید:
-    ```bash
-    sudo -u postgres psql
-    ```
-3.  در محیط `psql`، دستورات زیر را اجرا کنید. **رمز عبور `your_secure_password` را با یک رمز قوی جایگزین کنید.**
-    ```sql
-    CREATE DATABASE blinkdb;
-    CREATE USER blinkuser WITH PASSWORD 'your_secure_password';
-    GRANT ALL PRIVILEGES ON DATABASE blinkdb TO blinkuser;
-    \q
-    ```
-4.  اسکریپت `init.sql` را برای ساخت جداول و افزودن داده‌های اولیه اجرا کنید:
-    ```bash
-    sudo -u blinkuser psql -d blinkdb -f /var/www/blink-menu/init.sql
-    ```
+---
 
-#### مرحله ۴: نصب وابستگی‌های پروژه
+### 💡 Troubleshooting Common Issues (English)
 
-1.  وابستگی‌های لازم برای ریشه پروژه و بک‌اند را نصب کنید:
-    ```bash
-    sudo npm install
-    sudo npm install --prefix backend
-    ```
+-   **Nginx Test Failed:**
+    -   Check if another service is using port 80.
+    -   Verify the syntax in `/etc/nginx/sites-available/your-domain.com`.
+-   **502 Bad Gateway Error:**
+    -   This usually means the backend server is not running or has crashed.
+    -   Check the status with `pm2 status`.
+    -   Check the logs for errors with `pm2 logs blink-backend`. Ensure your `backend/.env` file is correct.
+-   **Certbot Fails:**
+    -   This is almost always a DNS issue. Ensure your domain is correctly pointing to your server's IP and that the changes have propagated. Use a tool like `dnschecker.org` to verify.
+-   **`npm install` Fails:**
+    -   Ensure you have a compatible version of Node.js (v18+) and that you have sufficient permissions in the project directory. Running the deploy script with `sudo` is recommended.
 
-#### مرحله ۵: تنظیم متغیرهای محیطی
+---
 
-1.  فایل `.env` بک‌اند را برای ذخیره اطلاعات اتصال به دیتابیس ایجاد و ویرایش کنید:
-    ```bash
-    sudo nano /var/www/blink-menu/backend/.env
-    ```
-    خط زیر را اضافه کرده و `your_secure_password` را با رمز عبوری که در مرحله ۳ ساختید جایگزین کنید:
-    ```
-    DATABASE_URL="postgresql://blinkuser:your_secure_password@localhost:5432/blinkdb"
-    ```
-2.  فایل `.env` اصلی را برای کلید Gemini API ایجاد کنید:
-    ```bash
-    sudo nano /var/www/blink-menu/.env
-    ```
-    کلید API خود را اضافه کنید:
-    ```
-    API_KEY="YOUR_ACTUAL_GEMINI_API_KEY"
-    ```
-3.  فایل کانفیگ فرانت‌اند را تولید کنید:
-    ```bash
-    sudo npm run prepare
-    ```
-4.  سطح دسترسی صحیح را برای پوشه پروژه تنظیم کنید:
-    ```bash
-    sudo chown -R www-data:www-data /var/www/blink-menu
-    ```
+### 💡 عیب‌یابی مشکلات رایج (فارسی)
 
-#### مرحله ۶: اجرای بک‌اند با PM2
-
-1.  PM2 (مدیر فرآیند برای Node.js) را نصب کنید:
-    ```bash
-    sudo npm install pm2 -g
-    ```
-2.  سرور بک‌اند را با PM2 اجرا کنید:
-    ```bash
-    cd /var/www/blink-menu/backend
-    sudo pm2 start server.js --name blink-backend
-    ```
-3.  PM2 را طوری تنظیم کنید که با ریبوت شدن سرور، به طور خودکار اجرا شود:
-    ```bash
-    sudo pm2 startup systemd
-    # دستوری که نمایش داده می‌شود را کپی و اجرا کنید
-    sudo pm2 save
-    ```
-
-#### مرحله ۷: پیکربندی Nginx به عنوان Reverse Proxy
-
-1.  یک فایل پیکربندی جدید برای سایت خود در Nginx ایجاد کنید. `your_domain.com` را با دامنه خود جایگزین کنید.
-    ```bash
-    sudo nano /etc/nginx/sites-available/your_domain.com
-    ```
-2.  پیکربندی زیر را در فایل کپی کنید. **فراموش نکنید که `your_domain.com` را در دو جا با دامنه خود جایگزین کنید.**
-    ```nginx
-    server {
-        listen 80;
-        server_name your_domain.com;
-        root /var/www/blink-menu;
-
-        index index.html;
-
-        location / {
-            try_files $uri $uri/ /index.html;
-        }
-
-        location /api/ {
-            proxy_pass http://localhost:5000;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-        }
-    }
-    ```
-3.  این سایت را با ایجاد یک لینک سیمبولیک فعال کنید:
-    ```bash
-    sudo ln -s /etc/nginx/sites-available/your_domain.com /etc/nginx/sites-enabled/
-    ```
-4.  پیکربندی Nginx را برای یافتن خطاها تست کنید:
-    ```bash
-    sudo nginx -t
-    ```
-5.  اگر تست موفقیت‌آمیز بود، Nginx را برای اعمال تغییرات ری‌استارت کنید:
-    ```bash
-    sudo systemctl restart nginx
-    ```
-
-#### مرحله ۸: دریافت گواهی SSL با Certbot
-
-1.  ابزار Certbot را برای دریافت گواهی SSL رایگان نصب کنید:
-    ```bash
-    sudo apt install -y certbot python3-certbot-nginx
-    ```
-2.  Certbot را برای دریافت و نصب خودکار گواهی اجرا کنید. `your_domain.com` را با دامنه و `your_email@example.com` را با ایمیل خود جایگزین کنید.
-    ```bash
-    sudo certbot --nginx -d your_domain.com --email your_email@example.com --agree-tos -n --redirect
-    ```
-    *   گزینه `--redirect` تمام ترافیک HTTP را به HTTPS منتقل می‌کند.
-
-Certbot گواهی شما را به طور خودکار تمدید خواهد کرد.
-
-تمام شد! اپلیکیشن شما اکنون به صورت امن بر روی آدرس **`https://your_domain.com`** در دسترس است.
+-   **خطای تست Nginx (Nginx Test Failed):**
+    -   بررسی کنید که سرویس دیگری از پورت ۸۰ استفاده نمی‌کند.
+    -   سینتکس فایل پیکربندی در مسیر `/etc/nginx/sites-available/your-domain.com` را بررسی کنید.
+-   **خطای 502 Bad Gateway:**
+    -   این خطا معمولاً به این معنی است که سرور بک‌اند اجرا نشده یا کرش کرده است.
+    -   وضعیت را با دستور `pm2 status` بررسی کنید.
+    -   لاگ‌ها را برای یافتن خطا با دستور `pm2 logs blink-backend` مشاهده کنید. مطمئن شوید فایل `backend/.env` صحیح است.
+-   **خطای Certbot:**
+    -   این مشکل تقریباً همیشه به DNS مربوط می‌شود. اطمینان حاصل کنید که دامنه شما به درستی به IP سرور اشاره می‌کند و تغییرات اعمال شده است. برای بررسی از ابزاری مانند `dnschecker.org` استفاده کنید.
+-   **خطای `npm install`:**
+    -   مطمئن شوید که نسخه سازگاری از Node.js (نسخه ۱۸ به بالا) دارید و دسترسی‌های لازم در پوشه پروژه را دارید. اجرای اسکریپت استقرار با `sudo` توصیه می‌شود.
